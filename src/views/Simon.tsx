@@ -84,12 +84,12 @@ export default function Simon() {
     (
       nextFlashes: SimonColor[],
       nextStrikes: Strikes,
-      nextTableKey: "hasVowel" | "noVowel"
+      nextTableKey: "hasVowel" | "noVowel",
     ) => {
       const map = SIMON_MAP[nextTableKey][nextStrikes];
       return nextFlashes.map((f) => map[f]);
     },
-    []
+    [],
   );
 
   // Przeliczaj drugą tablicę, ale zostaw kliknięcia gracza (flashes).

@@ -78,7 +78,7 @@ type AppState = {
   // dedykowane settery (z logiką zależności)
   setBatteryFlag: (
     key: "batteriesMoreThan1" | "batteries2OrMore" | "batteriesMoreThan2",
-    value: boolean
+    value: boolean,
   ) => void;
 
   resetBombFacts: () => void;

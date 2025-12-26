@@ -12,7 +12,7 @@ export default function Password() {
 
   // Stan: zaznaczone litery w każdej kolumnie
   const [selectedLetters, setSelectedLetters] = useState<Set<string>[]>(
-    Array.from({ length: WORD_LENGTH }, () => new Set<string>())
+    Array.from({ length: WORD_LENGTH }, () => new Set<string>()),
   );
 
   const toggleLetter = (col: number, letter: string) => {
@@ -28,7 +28,7 @@ export default function Password() {
 
   const resetSelection = () => {
     setSelectedLetters(
-      Array.from({ length: WORD_LENGTH }, () => new Set<string>())
+      Array.from({ length: WORD_LENGTH }, () => new Set<string>()),
     );
   };
 
@@ -57,8 +57,8 @@ export default function Password() {
         .every((letter, idx) =>
           selectedLetters[idx].size === 0
             ? true
-            : selectedLetters[idx].has(letter)
-        )
+            : selectedLetters[idx].has(letter),
+        ),
     );
   }, [words, selectedLetters]);
 
@@ -66,7 +66,7 @@ export default function Password() {
   const activeLettersByColumn = useMemo(() => {
     const result: Set<string>[] = Array.from(
       { length: WORD_LENGTH },
-      () => new Set<string>()
+      () => new Set<string>(),
     );
     filteredWords.forEach((word) => {
       word.split("").forEach((letter, idx) => result[idx].add(letter));
@@ -155,8 +155,8 @@ export default function Password() {
                     color: selectedLetters[colIdx].has(letter)
                       ? "#fff"
                       : activeLettersByColumn[colIdx].has(letter)
-                      ? "red"
-                      : "black",
+                        ? "red"
+                        : "black",
 
                     border: "1px solid #ccc",
                     borderRadius: "4px", // możesz dać 0 jeśli ma być idealny kwadrat

@@ -1,157 +1,626 @@
 {
   "language": "pl",
   "code": "856",
-  "passwordWords": ["alarm", "apacz", "arena", "babka", "cecha", "ekipa", "fajka", "farma", "głowa", "hańba", "larwa", "laska", "macka" , "obiad", "palec", "palma", "pegaz", "robak", "scena", "skrót", "smoła", "smycz", "tafla", "teren", "toast", "torba", "trasa", "twarz", "walka", "wełna", "wnęka", "zakaz", "zwiad", "znicz", "żniwa"],
+  "passwordWords": [
+    "alarm",
+    "apacz",
+    "arena",
+    "babka",
+    "cecha",
+    "ekipa",
+    "fajka",
+    "farma",
+    "głowa",
+    "hańba",
+    "larwa",
+    "laska",
+    "macka",
+    "obiad",
+    "palec",
+    "palma",
+    "pegaz",
+    "robak",
+    "scena",
+    "skrót",
+    "smoła",
+    "smycz",
+    "tafla",
+    "teren",
+    "toast",
+    "torba",
+    "trasa",
+    "twarz",
+    "walka",
+    "wełna",
+    "wnęka",
+    "zakaz",
+    "zwiad",
+    "znicz",
+    "żniwa"
+  ],
   "whosfirstwordstable": [
-  {
-    "key": "GOTÓW",
-    "words": ["TAK", "OKEJ", "HAH", "ŚRODEK", "LEWY", "NADUŚ", "PRAWY", "PUSTY", "GOTÓW", "NIE", "PIERWSZY", "ŹLE", "NIC", "CZEKAJ"]
+    {
+      "key": "GOTÓW",
+      "words": [
+        "TAK",
+        "OKEJ",
+        "HAH",
+        "ŚRODEK",
+        "LEWY",
+        "NADUŚ",
+        "PRAWY",
+        "PUSTY",
+        "GOTÓW",
+        "NIE",
+        "PIERWSZY",
+        "ŹLE",
+        "NIC",
+        "CZEKAJ"
+      ]
+    },
+    {
+      "key": "PIERWSZY",
+      "words": [
+        "LEWY",
+        "OKEJ",
+        "TAK",
+        "ŚRODEK",
+        "NIE",
+        "PRAWY",
+        "NIC",
+        "ŹLE",
+        "CZEKAJ",
+        "GOTÓW",
+        "PUSTY",
+        "HAH",
+        "NADUŚ",
+        "PIERWSZY"
+      ]
+    },
+    {
+      "key": "NIE",
+      "words": [
+        "PUSTY",
+        "ŹLE",
+        "CZEKAJ",
+        "PIERWSZY",
+        "HAH",
+        "GOTÓW",
+        "PRAWY",
+        "TAK",
+        "NIC",
+        "LEWY",
+        "NADUŚ",
+        "OKEJ",
+        "NIE",
+        "ŚRODEK"
+      ]
+    },
+    {
+      "key": "PUSTY",
+      "words": [
+        "CZEKAJ",
+        "PRAWY",
+        "OKEJ",
+        "ŚRODEK",
+        "PUSTY",
+        "NADUŚ",
+        "GOTÓW",
+        "NIC",
+        "NIE",
+        "HAH",
+        "LEWY",
+        "ŹLE",
+        "TAK",
+        "PIERWSZY"
+      ]
+    },
+    {
+      "key": "NIC",
+      "words": [
+        "ŹLE",
+        "PRAWY",
+        "OKEJ",
+        "ŚRODEK",
+        "TAK",
+        "PUSTY",
+        "NIE",
+        "NADUŚ",
+        "LEWY",
+        "HAH",
+        "CZEKAJ",
+        "PIERWSZY",
+        "NIC",
+        "GOTÓW"
+      ]
+    },
+    {
+      "key": "TAK",
+      "words": [
+        "OKEJ",
+        "PRAWY",
+        "ŹLE",
+        "ŚRODEK",
+        "PIERWSZY",
+        "HAH",
+        "NADUŚ",
+        "GOTÓW",
+        "NIC",
+        "TAK",
+        "LEWY",
+        "PUSTY",
+        "NIE",
+        "CZEKAJ"
+      ]
+    },
+    {
+      "key": "HAH",
+      "words": [
+        "ŹLE",
+        "HAH",
+        "LEWY",
+        "NIC",
+        "GOTÓW",
+        "PUSTY",
+        "ŚRODEK",
+        "NIE",
+        "OKEJ",
+        "PIERWSZY",
+        "CZEKAJ",
+        "TAK",
+        "NADUŚ",
+        "PRAWY"
+      ]
+    },
+    {
+      "key": "ŹLE",
+      "words": [
+        "GOTÓW",
+        "NIC",
+        "LEWY",
+        "HAH",
+        "OKEJ",
+        "TAK",
+        "PRAWY",
+        "NIE",
+        "NADUŚ",
+        "PUSTY",
+        "ŹLE",
+        "ŚRODEK",
+        "CZEKAJ",
+        "PIERWSZY"
+      ]
+    },
+    {
+      "key": "LEWY",
+      "words": [
+        "PRAWY",
+        "LEWY",
+        "PIERWSZY",
+        "NIE",
+        "ŚRODEK",
+        "TAK",
+        "PUSTY",
+        "HAH",
+        "ŹLE",
+        "CZEKAJ",
+        "NADUŚ",
+        "GOTÓW",
+        "OKEJ",
+        "NIC"
+      ]
+    },
+    {
+      "key": "PRAWY",
+      "words": [
+        "TAK",
+        "NIC",
+        "GOTÓW",
+        "NADUŚ",
+        "NIE",
+        "CZEKAJ",
+        "HAH",
+        "PRAWY",
+        "ŚRODEK",
+        "LEWY",
+        "ŹLE",
+        "PUSTY",
+        "OKEJ",
+        "PIERWSZY"
+      ]
+    },
+    {
+      "key": "ŚRODEK",
+      "words": [
+        "PUSTY",
+        "GOTÓW",
+        "OKEJ",
+        "HAH",
+        "NIC",
+        "NADUŚ",
+        "NIE",
+        "CZEKAJ",
+        "LEWY",
+        "ŚRODEK",
+        "PRAWY",
+        "PIERWSZY",
+        "ŹLE",
+        "TAK"
+      ]
+    },
+    {
+      "key": "OKEJ",
+      "words": [
+        "ŚRODEK",
+        "NIE",
+        "PIERWSZY",
+        "TAK",
+        "ŹLE",
+        "NIC",
+        "CZEKAJ",
+        "OKEJ",
+        "LEWY",
+        "GOTÓW",
+        "PUSTY",
+        "NADUŚ",
+        "HAH",
+        "PRAWY"
+      ]
+    },
+    {
+      "key": "CZEKAJ",
+      "words": [
+        "ŹLE",
+        "NIE",
+        "PUSTY",
+        "OKEJ",
+        "TAK",
+        "LEWY",
+        "PIERWSZY",
+        "NADUŚ",
+        "HAH",
+        "CZEKAJ",
+        "NIC",
+        "GOTÓW",
+        "PRAWY",
+        "ŚRODEK"
+      ]
+    },
+    {
+      "key": "NADUŚ",
+      "words": [
+        "PRAWY",
+        "ŚRODEK",
+        "TAK",
+        "GOTÓW",
+        "NADUŚ",
+        "OKEJ",
+        "NIC",
+        "ŹLE",
+        "PUSTY",
+        "LEWY",
+        "PIERWSZY",
+        "HAH",
+        "NIE",
+        "CZEKAJ"
+      ]
+    },
+    {
+      "key": "BUK",
+      "words": [
+        "DALEJ",
+        "BÓG",
+        "BUG",
+        "BUT",
+        "NASTĘPNY",
+        "LUT",
+        "LÓD",
+        "TRZYMAJ",
+        "CO?",
+        "BUK",
+        "HAHA",
+        "KTÓRY?",
+        "DOBRZE",
+        "LUD"
+      ]
+    },
+    {
+      "key": "BÓG",
+      "words": [
+        "BUG",
+        "NASTĘPNY",
+        "KTÓRY?",
+        "LUT",
+        "CO?",
+        "DOBRZE",
+        "HAHA",
+        "TRZYMAJ",
+        "BUK",
+        "LUD",
+        "BUT",
+        "DALEJ",
+        "LÓD",
+        "BÓG"
+      ]
+    },
+    {
+      "key": "BUG",
+      "words": [
+        "HAHA",
+        "BÓG",
+        "LUT",
+        "BUG",
+        "NASTĘPNY",
+        "LÓD",
+        "DALEJ",
+        "LUD",
+        "BUT",
+        "BUK",
+        "CO?",
+        "TRZYMAJ",
+        "KTÓRY?",
+        "DOBRZE"
+      ]
+    },
+    {
+      "key": "BUT",
+      "words": [
+        "BUK",
+        "BUT",
+        "LÓD",
+        "NASTĘPNY",
+        "HAHA",
+        "BÓG",
+        "LUD",
+        "BUG",
+        "CO?",
+        "LUT",
+        "DALEJ",
+        "DOBRZE",
+        "KTÓRY?",
+        "TRZYMAJ"
+      ]
+    },
+    {
+      "key": "LÓD",
+      "words": [
+        "DOBRZE",
+        "LUD",
+        "LÓD",
+        "LUT",
+        "CO?",
+        "DALEJ",
+        "BUG",
+        "TRZYMAJ",
+        "BUT",
+        "KTÓRY?",
+        "NASTĘPNY",
+        "HAHA",
+        "BÓG",
+        "BUK"
+      ]
+    },
+    {
+      "key": "LUD",
+      "words": [
+        "LUT",
+        "DALEJ",
+        "NASTĘPNY",
+        "CO?",
+        "BUT",
+        "LÓD",
+        "HAHA",
+        "DOBRZE",
+        "LUD",
+        "BUK",
+        "KTÓRY?",
+        "TRZYMAJ",
+        "BÓG",
+        "BUG"
+      ]
+    },
+    {
+      "key": "LUT",
+      "words": [
+        "LUT",
+        "BUG",
+        "BÓG",
+        "BUK",
+        "DOBRZE",
+        "TRZYMAJ",
+        "HAHA",
+        "NASTĘPNY",
+        "DALEJ",
+        "KTÓRY?",
+        "BUT",
+        "LÓD",
+        "LUD",
+        "CO?"
+      ]
+    },
+    {
+      "key": "HAHA",
+      "words": [
+        "LÓD",
+        "LUD",
+        "BÓG",
+        "BUT",
+        "NASTĘPNY",
+        "HAHA",
+        "DOBRZE",
+        "BUK",
+        "LUT",
+        "KTÓRY?",
+        "BUG",
+        "DALEJ",
+        "TRZYMAJ",
+        "CO?"
+      ]
+    },
+    {
+      "key": "CO?",
+      "words": [
+        "BUK",
+        "TRZYMAJ",
+        "BUT",
+        "BUG",
+        "LUD",
+        "DOBRZE",
+        "HAHA",
+        "KTÓRY?",
+        "BÓG",
+        "LUT",
+        "LÓD",
+        "NASTĘPNY",
+        "CO?",
+        "DALEJ"
+      ]
+    },
+    {
+      "key": "DOBRZE",
+      "words": [
+        "DALEJ",
+        "LUT",
+        "NASTĘPNY",
+        "CO?",
+        "BUG",
+        "LÓD",
+        "BUT",
+        "TRZYMAJ",
+        "KTÓRY?",
+        "BUK",
+        "LUD",
+        "BÓG",
+        "HAHA",
+        "DOBRZE"
+      ]
+    },
+    {
+      "key": "NASTĘPNY",
+      "words": [
+        "CO?",
+        "LUT",
+        "HAHA",
+        "BUG",
+        "TRZYMAJ",
+        "DALEJ",
+        "NASTĘPNY",
+        "KTÓRY?",
+        "DOBRZE",
+        "BÓG",
+        "LÓD",
+        "BUT",
+        "LUD",
+        "BUK"
+      ]
+    },
+    {
+      "key": "TRZYMAJ",
+      "words": [
+        "BÓG",
+        "LUD",
+        "DOBRZE",
+        "HAHA",
+        "BUK",
+        "LÓD",
+        "DALEJ",
+        "CO?",
+        "BUT",
+        "NASTĘPNY",
+        "TRZYMAJ",
+        "LUT",
+        "BUG",
+        "KTÓRY?"
+      ]
+    },
+    {
+      "key": "DALEJ",
+      "words": [
+        "BÓG",
+        "DOBRZE",
+        "KTÓRY?",
+        "BUT",
+        "BUK",
+        "TRZYMAJ",
+        "LUT",
+        "LÓD",
+        "DALEJ",
+        "LUD",
+        "CO?",
+        "NASTĘPNY",
+        "BUG",
+        "HAHA"
+      ]
+    },
+    {
+      "key": "KTÓRY?",
+      "words": [
+        "BUT",
+        "NASTĘPNY",
+        "LUD",
+        "LÓD",
+        "TRZYMAJ",
+        "DOBRZE",
+        "HAHA",
+        "CO?",
+        "LUT",
+        "BUK",
+        "KTÓRY?",
+        "DALEJ",
+        "BÓG",
+        "BUG"
+      ]
+    }
+  ],
+  "whosfirstpositiontable": {
+    "TAK": "P_Ś",
+    "BUT": "L_G",
+    "WYŚWIETLACZ": "L_D",
+    "OKEJ": "L_G",
+    "JA?": "L_D",
+    "NIC": "L_Ś",
+
+    "<blank>": "P_Ś",
+    "PUSTY": "L_G",
+    "NIE": "L_D",
+    "MIĘĆ": "P_Ś",
+    "MIEDŹ": "L_D",
+    "MOŻE": "L_Ś",
+
+    "MORZE": "L_Ś",
+    "LUD": "P_D",
+    "LÓD": "P_D",
+    "LUT": "L_D",
+    "BUK": "L_Ś",
+    "BÓG": "L_D",
+
+    "BUG": "L_Ś",
+    "KOLARZ": "P_G",
+    "RĄB": "L_D",
+    "ROMB": "P_D",
+    "JAK": "L_Ś",
+
+    "JAK?": "P_Ś",
+    "JA": "L_D",
+    "KOD": "L_G",
+    "KOT": "L_D"
   },
-  {
-    "key": "PIERWSZY",
-    "words": ["LEWY", "OKEJ", "TAK", "ŚRODEK", "NIE", "PRAWY", "NIC", "ŹLE", "CZEKAJ", "GOTÓW", "PUSTY", "HAH", "NADUŚ", "PIERWSZY"]
-  },
-  {
-    "key": "NIE",
-    "words": ["PUSTY", "ŹLE", "CZEKAJ", "PIERWSZY", "HAH", "GOTÓW", "PRAWY", "TAK", "NIC", "LEWY", "NADUŚ", "OKEJ", "NIE", "ŚRODEK"]
-  },
-  {
-    "key": "PUSTY",
-    "words": ["CZEKAJ", "PRAWY", "OKEJ", "ŚRODEK", "PUSTY", "NADUŚ", "GOTÓW", "NIC", "NIE", "HAH", "LEWY", "ŹLE", "TAK", "PIERWSZY"]
-  },
-  {
-    "key": "NIC",
-    "words": ["ŹLE", "PRAWY", "OKEJ", "ŚRODEK", "TAK", "PUSTY", "NIE", "NADUŚ", "LEWY", "HAH", "CZEKAJ", "PIERWSZY", "NIC", "GOTÓW"]
-  },
-  {
-    "key": "TAK",
-    "words": ["OKEJ", "PRAWY", "ŹLE", "ŚRODEK", "PIERWSZY", "HAH", "NADUŚ", "GOTÓW", "NIC", "TAK", "LEWY", "PUSTY", "NIE", "CZEKAJ"]
-  },
-  {
-    "key": "HAH",
-    "words": ["ŹLE", "HAH", "LEWY", "NIC", "GOTÓW", "PUSTY", "ŚRODEK", "NIE", "OKEJ", "PIERWSZY", "CZEKAJ", "TAK", "NADUŚ", "PRAWY"]
-  },
-  {
-    "key": "ŹLE",
-    "words": ["GOTÓW", "NIC", "LEWY", "HAH", "OKEJ", "TAK", "PRAWY", "NIE", "NADUŚ", "PUSTY", "ŹLE", "ŚRODEK", "CZEKAJ", "PIERWSZY"]
-  },
-  {
-    "key": "LEWY",
-    "words": ["PRAWY", "LEWY", "PIERWSZY", "NIE", "ŚRODEK", "TAK", "PUSTY", "HAH", "ŹLE", "CZEKAJ", "NADUŚ", "GOTÓW", "OKEJ", "NIC"]
-  },
-  {
-    "key": "PRAWY",
-    "words": ["TAK", "NIC", "GOTÓW", "NADUŚ", "NIE", "CZEKAJ", "HAH", "PRAWY", "ŚRODEK", "LEWY", "ŹLE", "PUSTY", "OKEJ", "PIERWSZY"]
-  },
-  {
-    "key": "ŚRODEK",
-    "words": ["PUSTY", "GOTÓW", "OKEJ", "HAH", "NIC", "NADUŚ", "NIE", "CZEKAJ", "LEWY", "ŚRODEK", "PRAWY", "PIERWSZY", "ŹLE", "TAK"]
-  },
-  {
-    "key": "OKEJ",
-    "words": ["ŚRODEK", "NIE", "PIERWSZY", "TAK", "ŹLE", "NIC", "CZEKAJ", "OKEJ", "LEWY", "GOTÓW", "PUSTY", "NADUŚ", "HAH", "PRAWY"]
-  },
-  {
-    "key": "CZEKAJ",
-    "words": ["ŹLE", "NIE", "PUSTY", "OKEJ", "TAK", "LEWY", "PIERWSZY", "NADUŚ", "HAH", "CZEKAJ", "NIC", "GOTÓW", "PRAWY", "ŚRODEK"]
-  },
-  {
-    "key": "NADUŚ",
-    "words": ["PRAWY", "ŚRODEK", "TAK", "GOTÓW", "NADUŚ", "OKEJ", "NIC", "ŹLE", "PUSTY", "LEWY", "PIERWSZY", "HAH", "NIE", "CZEKAJ"]
-  },
-  {
-    "key": "BUK",
-    "words": ["DALEJ", "BÓG", "BUG", "BUT", "NASTĘPNY", "LUT", "LÓD", "TRZYMAJ", "CO?", "BUK", "HAHA", "KTÓRY?", "DOBRZE", "LUD"]
-  },
-  {
-    "key": "BÓG",
-    "words": ["BUG", "NASTĘPNY", "KTÓRY?", "LUT", "CO?", "DOBRZE", "HAHA", "TRZYMAJ", "BUK", "LUD", "BUT", "DALEJ", "LÓD", "BÓG"]
-  },
-  {
-    "key": "BUG",
-    "words": ["HAHA", "BÓG", "LUT", "BUG", "NASTĘPNY", "LÓD", "DALEJ", "LUD", "BUT", "BUK", "CO?", "TRZYMAJ", "KTÓRY?", "DOBRZE"]
-  },
-  {
-    "key": "BUT",
-    "words": ["BUK", "BUT", "LÓD", "NASTĘPNY", "HAHA", "BÓG", "LUD", "BUG", "CO?", "LUT", "DALEJ", "DOBRZE", "KTÓRY?", "TRZYMAJ"]
-  },
-  {
-    "key": "LÓD",
-    "words": ["DOBRZE", "LUD", "LÓD", "LUT", "CO?", "DALEJ", "BUG", "TRZYMAJ", "BUT", "KTÓRY?", "NASTĘPNY", "HAHA", "BÓG", "BUK"]
-  },
-  {
-    "key": "LUD",
-    "words": ["LUT", "DALEJ", "NASTĘPNY", "CO?", "BUT", "LÓD", "HAHA", "DOBRZE", "LUD", "BUK", "KTÓRY?", "TRZYMAJ", "BÓG", "BUG"]
-  },
-  {
-    "key": "LUT",
-    "words": ["LUT", "BUG", "BÓG", "BUK", "DOBRZE", "TRZYMAJ", "HAHA", "NASTĘPNY", "DALEJ", "KTÓRY?", "BUT", "LÓD", "LUD", "CO?"]
-  },
-  {
-    "key": "HAHA",
-    "words": ["LÓD", "LUD", "BÓG", "BUT", "NASTĘPNY", "HAHA", "DOBRZE", "BUK", "LUT", "KTÓRY?", "BUG", "DALEJ", "TRZYMAJ", "CO?"]
-  },
-  {
-    "key": "CO?",
-    "words": ["BUK", "TRZYMAJ", "BUT", "BUG", "LUD", "DOBRZE", "HAHA", "KTÓRY?", "BÓG", "LUT", "LÓD", "NASTĘPNY", "CO?", "DALEJ"]
-  },
-  {
-    "key": "DOBRZE",
-    "words": ["DALEJ", "LUT", "NASTĘPNY", "CO?", "BUG", "LÓD", "BUT", "TRZYMAJ", "KTÓRY?", "BUK", "LUD", "BÓG", "HAHA", "DOBRZE"]
-  },
-  {
-    "key": "NASTĘPNY",
-    "words": ["CO?", "LUT", "HAHA", "BUG", "TRZYMAJ", "DALEJ", "NASTĘPNY", "KTÓRY?", "DOBRZE", "BÓG", "LÓD", "BUT", "LUD", "BUK"]
-  },
-  {
-    "key": "TRZYMAJ",
-    "words": ["BÓG", "LUD", "DOBRZE", "HAHA", "BUK", "LÓD", "DALEJ", "CO?", "BUT", "NASTĘPNY", "TRZYMAJ", "LUT", "BUG", "KTÓRY?"]
-  },
-  {
-    "key": "DALEJ",
-    "words": ["BÓG", "DOBRZE", "KTÓRY?", "BUT", "BUK", "TRZYMAJ", "LUT", "LÓD", "DALEJ", "LUD", "CO?", "NASTĘPNY", "BUG", "HAHA"]
-  },
-  {
-    "key": "KTÓRY?",
-    "words": ["BUT", "NASTĘPNY", "LUD", "LÓD", "TRZYMAJ", "DOBRZE", "HAHA", "CO?", "LUT", "BUK", "KTÓRY?", "DALEJ", "BÓG", "BUG"]
+  "morseWords": {
+    "drzwi": 505,
+    "arbuz": 515,
+    "kakao": 522,
+    "rzeka": 532,
+    "broda": 535,
+    "rower": 542,
+    "obraz": 545,
+    "ponton": 552,
+    "barka": 555,
+    "bomby": 565,
+    "szafa": 572,
+    "zamek": 575,
+    "lampa": 582,
+    "indyk": 592,
+    "pojazd": 595,
+    "harfa": 600
   }
-],
-"whosfirstpositiontable":{
-  "TAK": "P_Ś",
-  "BUT": "L_G",
-  "WYŚWIETLACZ": "L_D",
-  "OKEJ": "L_G",
-  "JA?": "L_D",
-  "NIC": "L_Ś",
-
-  "<blank>": "P_Ś",
-  "PUSTY": "L_G",
-  "NIE": "L_D",
-  "MIĘĆ": "P_Ś",
-  "MIEDŹ": "L_D",
-  "MOŻE": "L_Ś",
-
-  "MORZE": "L_Ś",
-  "LUD": "P_D",
-  "LÓD": "P_D",
-  "LUT": "L_D",
-  "BUK": "L_Ś",
-  "BÓG": "L_D",
-
-  "BUG": "L_Ś",
-  "KOLARZ": "P_G",
-  "RĄB": "L_D",
-  "ROMB": "P_D",
-  "JAK": "L_Ś",
-
-  "JAK?": "P_Ś",
-  "JA": "L_D",
-  "KOD": "L_G",
-  "KOT": "L_D"
 }
-
-
-}
-
-
-

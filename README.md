@@ -1,4 +1,3 @@
-
 # Keep Talking and Nobody Explodes - Interactive Manual App
 
 This project is an interactive manual application designed for players of **Keep Talking and Nobody Explodes** who handle the manual. The app provides a modern, multi-language, and optimized experience, making it easier to reference the bomb defusal manual during gameplay.
@@ -11,13 +10,11 @@ This project is an interactive manual application designed for players of **Keep
 - **State Preservation:** Keep your progress and bookmarks across modules.
 - **Fast Navigation:** Jump to any module directly with a simple search or through the table of contents.
 
-
 ## Usage
 
-* Open the app and select your preferred language.
-* Navigate through modules using the interactive interface.
+- Open the app and select your preferred language.
+- Navigate through modules using the interactive interface.
 
-
---- 
+---
 
 Enjoy defusing bombs faster and more efficiently with an interactive, multi-language manual!
