@@ -1,0 +1,44 @@
+jak odbierac dane ze statea:
+
+const serialHasVowel = useAppStore((s) => s.bombFacts.serialHasVowel);
+const activeView = useAppStore((s) => s.activeView);
+const t = useAppStore((s) => s.t);
+
+
+wartosci bombFacts
+
+serialLastDigitEven: false,
+serialHasVowel: false,
+indicatorCAR: false,
+indicatorFRK: false,
+hasParallelPort: false,
+
+batteriesMoreThan1: false,
+batteries2OrMore: false,
+batteriesMoreThan2: false,
+
+
+zmiana 
+
+const {
+  setActiveView,
+  lang,
+  setLang,
+  availableLangs,
+  bombFacts,
+  setBombFacts,
+  setBatteryFlag,
+  resetBombFacts,
+} = useAppStore();
+
+
+Działa jako „patch”: scala nowy fragment z istniejącym obiektem:
+set((state) => ({
+  bombFacts: { ...state.bombFacts, ...patch },
+}));
+
+setBombFacts({ serialHasVowel: true });
+setBombFacts({ indicatorCAR: false, hasParallelPort: true });
+
+setBatteryFlag("batteries2OrMore", true);
+setBatteryFlag("batteriesMoreThan1", false);

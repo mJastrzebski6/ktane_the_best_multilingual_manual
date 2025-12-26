@@ -9,7 +9,7 @@ import Morse from "./Morse";
 import NeedyKnob from "./NeedyKnob";
 import Password from "./Password";
 import Simon from "./Simon";
-import WhosOnFirst from "./WhosOnFirst ";
+import WhosOnFirst from "./WhosOnFirst";
 import type { ViewId } from "../store/AppStore";
 import type { JSX } from "react";
 

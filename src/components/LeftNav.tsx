@@ -1,4 +1,15 @@
-import { Box, MenuItem, Select, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  FormControlLabel,
+  FormGroup,
+  MenuItem,
+  Select,
+  Switch,
+  Typography,
+} from "@mui/material";
 import { useAppStore, type ViewId } from "../store/AppStore";
 
 // wires
@@ -39,17 +50,64 @@ const items: { id: ViewId; img: string }[] = [
   { id: "needy_knob", img: NeedyKnobComponent },
 ];
 
-export function LeftNav() {
-  const { setActiveView, lang, setLang, availableLangs } = useAppStore();
+function BorderedInlineCheckbox(props: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  const { checked, onChange, label } = props;
 
   return (
     <Box
       sx={{
-        width: 280,
+        border: "1px solid rgba(0,0,0,0.18)",
+        borderRadius: 1,
+        px: 0.75,
+        py: 0.25,
+        display: "flex",
+        alignItems: "center",
+        gap: 0.5,
+        minWidth: 0,
+        backgroundColor: "rgba(0,0,0,0.02)",
+      }}
+    >
+      <Checkbox
+        size="small"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        sx={{ p: 0.5 }}
+      />
+      <Typography variant="caption" sx={{ whiteSpace: "nowrap" }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
+
+export function LeftNav() {
+  const {
+    setActiveView,
+    lang,
+    setLang,
+    availableLangs,
+    bombFacts,
+    setBombFacts,
+    setBatteryFlag,
+    resetBombFacts,
+  } = useAppStore();
+
+  return (
+    <Box
+      sx={{
+        width: { xs: 220, sm: 260, md: 280 },
         height: "100vh",
+        position: "sticky",
+        top: 0,
         display: "flex",
         flexDirection: "column",
         borderRight: "1px solid #ddd",
+        bgcolor: "background.paper",
+        overflow: "hidden", // brak scrolla dla całego nav
       }}
     >
       {/* LANGUAGE SELECT */}
@@ -72,16 +130,17 @@ export function LeftNav() {
         </Select>
       </Box>
 
-      {/* NAV GRID */}
+      {/* NAV GRID (bez scrolla, obrazki w całości widoczne) */}
       <Box
         sx={{
           flex: 1,
+          minHeight: 0,
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gridAutoRows: 90,
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gridTemplateRows: "repeat(4, minmax(0, 1fr))", // 12 elementów => 4 rzędy
           gap: 1,
           p: 1,
-          overflowY: "auto",
+          overflow: "hidden",
         }}
       >
         {items.map((item) => (
@@ -90,8 +149,14 @@ export function LeftNav() {
             onClick={() => setActiveView(item.id)}
             sx={{
               cursor: "pointer",
+              borderRadius: 1,
+              border: "1px solid rgba(0,0,0,0.10)",
+              p: 0.5,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               overflow: "hidden",
-              "&:hover": { opacity: 0.8 },
+              "&:hover": { opacity: 0.85 },
             }}
           >
             <img
@@ -100,11 +165,148 @@ export function LeftNav() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain", // pełny obraz, bez obcinania
+                display: "block",
               }}
             />
           </Box>
         ))}
+      </Box>
+
+      {/* GLOBAL STATE PANEL (RESETOWALNE) */}
+      <Divider />
+      <Box
+        sx={{
+          p: 1,
+          borderTop: "1px solid rgba(0,0,0,0.06)",
+          overflow: "hidden", // brak scrolla także tutaj
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 1,
+            mb: 0.5,
+          }}
+        >
+          <Typography variant="subtitle2">Global facts</Typography>
+
+          <Button size="small" variant="outlined" onClick={resetBombFacts}>
+            Reset
+          </Button>
+        </Box>
+
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bombFacts.serialLastDigitEven}
+                onChange={(e) =>
+                  setBombFacts({ serialLastDigitEven: e.target.checked })
+                }
+              />
+            }
+            label="Ostatnia cyfra seryjnego parzysta"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bombFacts.serialHasVowel}
+                onChange={(e) =>
+                  setBombFacts({ serialHasVowel: e.target.checked })
+                }
+              />
+            }
+            label="Seryjny ma samogłoskę"
+          />
+
+          <Divider sx={{ my: 0.5 }} />
+
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bombFacts.indicatorCAR}
+                onChange={(e) =>
+                  setBombFacts({ indicatorCAR: e.target.checked })
+                }
+              />
+            }
+            label="Wskaźnik CAR się świeci"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bombFacts.indicatorFRK}
+                onChange={(e) =>
+                  setBombFacts({ indicatorFRK: e.target.checked })
+                }
+              />
+            }
+            label="Wskaźnik FRK się świeci"
+          />
+
+          <Divider sx={{ my: 0.5 }} />
+
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={bombFacts.hasParallelPort}
+                onChange={(e) =>
+                  setBombFacts({ hasParallelPort: e.target.checked })
+                }
+              />
+            }
+            label="Ma port równoległy"
+          />
+
+          <Divider sx={{ my: 0.5 }} />
+
+          <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
+            Baterie (spójne zależności)
+          </Typography>
+
+          {/* BATTERIES: podpisy >1, >=2, >2 + obok siebie + border per control */}
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 0.75,
+            }}
+          >
+            <BorderedInlineCheckbox
+              checked={bombFacts.batteriesMoreThan1}
+              onChange={(checked) =>
+                setBatteryFlag("batteriesMoreThan1", checked)
+              }
+              label=">1"
+            />
+
+            <BorderedInlineCheckbox
+              checked={bombFacts.batteries2OrMore}
+              onChange={(checked) =>
+                setBatteryFlag("batteries2OrMore", checked)
+              }
+              label=">=2"
+            />
+
+            <BorderedInlineCheckbox
+              checked={bombFacts.batteriesMoreThan2}
+              onChange={(checked) =>
+                setBatteryFlag("batteriesMoreThan2", checked)
+              }
+              label=">2"
+            />
+          </Box>
+        </FormGroup>
       </Box>
     </Box>
   );
