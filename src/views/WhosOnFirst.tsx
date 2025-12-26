@@ -9,11 +9,17 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
 
 type WhosFirstRow = {
   key: string;
   words: string[];
 };
+
+// ZMIANA: teraz format to KOLUMNA_WIERSZ, np. P_Ś, L_G
+type PositionCode = "P_G" | "P_Ś" | "P_D" | "L_G" | "L_Ś" | "L_D";
 
 function takeUntilIncludingKey(words: string[], key: string): string[] {
   const idx = words.indexOf(key);
@@ -21,10 +27,34 @@ function takeUntilIncludingKey(words: string[], key: string): string[] {
   return words.slice(0, idx + 1);
 }
 
+function parsePosition(pos?: string): PositionCode | null {
+  if (!pos) return null;
+  const allowed: Record<string, true> = {
+    P_G: true,
+    P_Ś: true,
+    P_D: true,
+    L_G: true,
+    L_Ś: true,
+    L_D: true,
+  };
+  return allowed[pos] ? (pos as PositionCode) : null;
+}
+
+function positionLabel(pos: PositionCode) {
+  // ZMIANA: najpierw kolumna, potem wiersz
+  const [col, row] = pos.split("_") as ["P" | "L", "G" | "Ś" | "D"];
+
+  const colName = col === "P" ? "Lewo" : "Prawo"; // P = prawa strona? U Ciebie P/L to Lewo/Prawo: P=lewo, L=prawo? Patrz niżej.
+  const rowName = row === "G" ? "Góra" : row === "Ś" ? "Środek" : "Dół";
+
+  // Jeśli w Twojej nomenklaturze jest odwrotnie (P=Prawo, L=Lewo), zamień powyższy ternary.
+  return { short: `${col}/${row}`, long: `${colName} / ${rowName}` };
+}
+
 export default function WhosOnFirst() {
   const t = useAppStore((s) => s.t);
 
-  const table = (t.whosfirstwordtable ?? []) as WhosFirstRow[];
+  const table = (t.whosfirstwordstable ?? []) as WhosFirstRow[];
 
   const rows = useMemo(() => {
     return [...table]
@@ -35,11 +65,62 @@ export default function WhosOnFirst() {
       }));
   }, [table]);
 
+  // Mapowanie: słowo -> pozycja (statycznie wyświetlane nad tabelą)
+  const positionPairs = useMemo(() => {
+    const raw = (t.whosfirstpositiontable ?? {}) as Record<string, string>;
+
+    return Object.entries(raw)
+      .map(([k, v]) => {
+        const key = (k ?? "").trim().toUpperCase();
+        const pos = parsePosition((v ?? "").trim());
+        return key && pos ? { key, pos } : null;
+      })
+      .filter((x): x is { key: string; pos: PositionCode } => Boolean(x))
+      .sort((a, b) => a.key.localeCompare(b.key, "pl"));
+  }, [t.whosfirstpositiontable]);
+
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>
         Who&apos;s on First
       </Typography>
+
+      {/* STATYCZNA LISTA: CO → GDZIE */}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+          Mapa pozycji (co → gdzie)
+        </Typography>
+
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", mb: 1 }}
+        >
+          Legenda: P/L = Lewy/Prawy, G/Ś/D = Góra/Środek/Dół
+        </Typography>
+
+        <Divider sx={{ mb: 1.5 }} />
+
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+          {positionPairs.map(({ key, pos }) => {
+            const lab = positionLabel(pos);
+            return (
+              <Chip
+                key={key}
+                variant="outlined"
+                label={`${key} → ${lab.short}`}
+                title={`${key} → ${pos} (${lab.long})`}
+              />
+            );
+          })}
+
+          {positionPairs.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Brak mapy pozycji w pliku językowym.
+            </Typography>
+          )}
+        </Stack>
+      </Paper>
 
       <TableContainer component={Paper} variant="outlined">
         <Table size="small" stickyHeader>
@@ -66,9 +147,7 @@ export default function WhosOnFirst() {
 
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={2}>
-                  Brak danych w t.whosfirstwordtable
-                </TableCell>
+                <TableCell colSpan={2}>No data in this language file</TableCell>
               </TableRow>
             )}
           </TableBody>
