@@ -63,7 +63,7 @@ const HIGHLIGHT: Record<WireColor, string> = {
 
 function isHighlighted(
   rowIndex: number,
-  selectedIndex: number | null,
+  selectedIndex: number | null
 ): boolean {
   return selectedIndex !== null && rowIndex <= selectedIndex;
 }
@@ -109,7 +109,7 @@ export default function WireABC() {
   const cellSx = (
     color: WireColor,
     rowIndex: number,
-    colIndex1to6: number,
+    colIndex1to6: number
   ) => ({
     cursor: "pointer",
     userSelect: "none" as const,
@@ -161,13 +161,19 @@ export default function WireABC() {
           <TableHead>
             <TableRow>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(2)}>
-                Red Wire Occurrences
+                <Typography sx={{ color: "red" }}>
+                  Red Wire Occurrences
+                </Typography>
               </TableCell>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(4)}>
-                Blue Wire Occurrences
+                <Typography sx={{ color: "blue" }}>
+                  Blue Wire Occurrences
+                </Typography>
               </TableCell>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(6)}>
-                Black Wire Occurrences
+                <Typography sx={{ color: "black" }}>
+                  Black Wire Occurrences
+                </Typography>
               </TableCell>
             </TableRow>
 
