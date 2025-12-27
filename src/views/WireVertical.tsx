@@ -12,6 +12,15 @@ type WireState = {
 
 type Decision = "CUT" | "DONT" | "B" | "P" | "S";
 
+const DEFAULT_WIRE: WireState = {
+  ledOn: false,
+  star: false,
+  color: "white",
+};
+
+const createDefaultWires = () =>
+  Array.from({ length: 6 }, () => ({ ...DEFAULT_WIRE })) as WireState[];
+
 /**
  * Mapowanie 1:1 z tabelą z obrazka:
  * Kolumny:
@@ -110,14 +119,11 @@ export default function WireVertical() {
     [hasParallelPort, batteryCount, serialLastDigitEven]
   );
 
-  const [wires, setWires] = React.useState<WireState[]>(
-    () =>
-      Array.from({ length: 6 }, () => ({
-        ledOn: false,
-        star: false,
-        color: "white" as const,
-      })) as WireState[]
-  );
+  const [wires, setWires] = React.useState<WireState[]>(createDefaultWires);
+
+  const resetWires = React.useCallback(() => {
+    setWires(createDefaultWires());
+  }, []);
 
   const setWire = React.useCallback(
     (idx: number, patch: Partial<WireState>) => {
@@ -141,6 +147,9 @@ export default function WireVertical() {
           gap: 2,
         }}
       >
+        <Button variant="contained" color="error" onClick={resetWires}>
+          Reset
+        </Button>
         <Typography variant="h5" sx={{ ml: 2 }}>
           Wires VENN
         </Typography>
