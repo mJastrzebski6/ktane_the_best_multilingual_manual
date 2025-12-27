@@ -1,6 +1,8 @@
 {
   "language": "pl",
   "code": "856",
+  "passwordHelpText": "Klikaj przycisk tab żeby przenosić między inputami. Shift+tab - cofa o jeden input. Pusta kolumna oznacza brak ograniczenia dla tej pozycji. Mozna klikać na litery.",
+  "morseHelpText": "Kod Morse'a można wprowadzać od dowolnego momentu transmisji. Algorytm przeszukiwania działa cyklicznie (zapętlone wyszukiwanie), dlatego dopasowanie obejmuje również fragmenty przechodzące z końca na początek.",
   "passwordWords": [
     "alarm",
     "apacz",

@@ -1,6 +1,8 @@
 {
   "language": "en",
   "code": "241",
+  "passwordHelpText": "Click the tab button to move between inputs. Shift+tab - moves back one input. An empty column means there is no limit for that position. You can also click on letters buttons.",
+  "morseHelpText": "Morse code can be entered from any point during transmission. The search algorithm operates cyclically (looped search), so the match also includes fragments that move from end to beginning.",
   "passwordWords": [
     "about",
     "after",

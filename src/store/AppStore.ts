@@ -43,8 +43,13 @@ export type ViewId =
   | "whos_on_first";
 
 /**
+ * Liczba baterii z saturacją:
+ * 0, 1, 2, 3 (gdzie 3 oznacza "3 lub więcej")
+ */
+export type BatteryCount = 0 | 1 | 2 | 3;
+
+/**
  * Resetowalne, "bomb facts" / cechy, które użytkownik może ustawiać globalnie.
- * (W store masz też inne pola zależne od języka – tych nie ruszamy resetem.)
  */
 type ResettableBombFacts = {
   serialLastDigitEven: boolean;
@@ -53,10 +58,8 @@ type ResettableBombFacts = {
   indicatorFRK: boolean;
   hasParallelPort: boolean;
 
-  // baterie: trzy poziomy z implikacjami (więcej niż 2 => 2+ => więcej niż 1)
-  batteriesMoreThan1: boolean; // "więcej niż 1 bateria"
-  batteries2OrMore: boolean; // "2 lub więcej baterii"
-  batteriesMoreThan2: boolean; // "więcej niż 2 baterie"
+  // baterie jako liczba (0/1/2/3+)
+  batteryCount: BatteryCount;
 };
 
 type AppState = {
@@ -70,21 +73,17 @@ type AppState = {
   activeView: ViewId;
   setActiveView: (view: ViewId) => void;
 
-  // resetowalna logika globalnego state
+  // bomb facts
   bombFacts: ResettableBombFacts;
-
   setBombFacts: (patch: Partial<ResettableBombFacts>) => void;
 
-  // dedykowane settery (z logiką zależności)
-  setBatteryFlag: (
-    key: "batteriesMoreThan1" | "batteries2OrMore" | "batteriesMoreThan2",
-    value: boolean,
-  ) => void;
+  // dedykowany setter na baterie
+  setBatteryCount: (count: BatteryCount) => void;
 
   resetBombFacts: () => void;
 };
 
-const defaultLang = availableLangs[0]?.key;
+const defaultLang = availableLangs[0]?.key ?? "en";
 
 const defaultBombFacts: ResettableBombFacts = {
   serialLastDigitEven: false,
@@ -93,12 +92,10 @@ const defaultBombFacts: ResettableBombFacts = {
   indicatorFRK: false,
   hasParallelPort: false,
 
-  batteriesMoreThan1: false,
-  batteries2OrMore: false,
-  batteriesMoreThan2: false,
+  batteryCount: 0,
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   // language
   lang: defaultLang,
   t: languages[defaultLang],
@@ -122,32 +119,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       bombFacts: { ...state.bombFacts, ...patch },
     })),
 
-  setBatteryFlag: (key, value) => {
-    const current = get().bombFacts;
-
-    // baza
-    const next: ResettableBombFacts = { ...current, [key]: value };
-
-    // Implikacje "w górę"
-    if (key === "batteriesMoreThan2" && value) {
-      next.batteries2OrMore = true;
-      next.batteriesMoreThan1 = true;
-    }
-    if (key === "batteries2OrMore" && value) {
-      next.batteriesMoreThan1 = true;
-    }
-
-    // Spójne wyłączanie "w dół"
-    if (key === "batteriesMoreThan1" && !value) {
-      next.batteries2OrMore = false;
-      next.batteriesMoreThan2 = false;
-    }
-    if (key === "batteries2OrMore" && !value) {
-      next.batteriesMoreThan2 = false;
-    }
-
-    set({ bombFacts: next });
-  },
+  setBatteryCount: (count) =>
+    set((state) => ({
+      bombFacts: { ...state.bombFacts, batteryCount: count },
+    })),
 
   resetBombFacts: () => set({ bombFacts: defaultBombFacts }),
 }));

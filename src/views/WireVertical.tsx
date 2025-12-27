@@ -41,7 +41,7 @@ function shouldCut(
   wire: WireState,
   bombFacts: {
     hasParallelPort: boolean;
-    batteries2OrMore: boolean;
+    batteryCount: number; // 0/1/2/3(3+)
     serialLastDigitEven: boolean;
   }
 ): boolean {
@@ -54,7 +54,7 @@ function shouldCut(
     case "DONT":
       return false;
     case "B":
-      return bombFacts.batteries2OrMore;
+      return bombFacts.batteryCount >= 2;
     case "P":
       return bombFacts.hasParallelPort;
     case "S":
@@ -83,7 +83,8 @@ function colorButtonSx(color: WireColor) {
       return {
         ...base,
         color: "#fff",
-        background: "linear-gradient(135deg, #d50000 0%, #d50000 50%, #1e3a8a 50%, #1e3a8a 100%)",
+        background:
+          "linear-gradient(135deg, #d50000 0%, #d50000 50%, #1e3a8a 50%, #1e3a8a 100%)",
       };
   }
 }
@@ -99,12 +100,14 @@ function selectableSx(selected: boolean) {
 
 export default function WireVertical() {
   const hasParallelPort = useAppStore((s) => s.bombFacts.hasParallelPort);
-  const batteries2OrMore = useAppStore((s) => s.bombFacts.batteries2OrMore);
-  const serialLastDigitEven = useAppStore((s) => s.bombFacts.serialLastDigitEven);
+  const batteryCount = useAppStore((s) => s.bombFacts.batteryCount);
+  const serialLastDigitEven = useAppStore(
+    (s) => s.bombFacts.serialLastDigitEven
+  );
 
   const bombFacts = React.useMemo(
-    () => ({ hasParallelPort, batteries2OrMore, serialLastDigitEven }),
-    [hasParallelPort, batteries2OrMore, serialLastDigitEven]
+    () => ({ hasParallelPort, batteryCount, serialLastDigitEven }),
+    [hasParallelPort, batteryCount, serialLastDigitEven]
   );
 
   const [wires, setWires] = React.useState<WireState[]>(
@@ -116,13 +119,16 @@ export default function WireVertical() {
       })) as WireState[]
   );
 
-  const setWire = React.useCallback((idx: number, patch: Partial<WireState>) => {
-    setWires((prev) => {
-      const next = [...prev];
-      next[idx] = { ...next[idx], ...patch };
-      return next;
-    });
-  }, []);
+  const setWire = React.useCallback(
+    (idx: number, patch: Partial<WireState>) => {
+      setWires((prev) => {
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...patch };
+        return next;
+      });
+    },
+    []
+  );
 
   return (
     <>
@@ -138,7 +144,7 @@ export default function WireVertical() {
         <Typography variant="h5" sx={{ ml: 2 }}>
           Wires VENN
         </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.75, color: "red"}}>
+        <Typography variant="body2" sx={{ opacity: 0.75, color: "red" }}>
           POTRZEBNE: BATERIE, PORT RÓWNOLEGŁY, PARZYSTOŚĆ NUMERU SERYJNEGO
         </Typography>
       </Box>
@@ -159,7 +165,10 @@ export default function WireVertical() {
         {wires.map((w, colIdx) => {
           const isOn = w.ledOn;
           return (
-            <Box key={`led-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+            <Box
+              key={`led-${colIdx}`}
+              sx={{ display: "flex", justifyContent: "center" }}
+            >
               <Button
                 variant="outlined"
                 onClick={() => setWire(colIdx, { ledOn: !w.ledOn })}
@@ -171,7 +180,6 @@ export default function WireVertical() {
                   bgcolor: isOn ? "#ffeb3b" : "transparent",
                 }}
               >
-                {/* pełne vs puste koło */}
                 {isOn ? "●" : "○"}
               </Button>
             </Box>
@@ -195,7 +203,10 @@ export default function WireVertical() {
 
         {/* Rząd 2: white */}
         {wires.map((w, colIdx) => (
-          <Box key={`white-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            key={`white-${colIdx}`}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Button
               onClick={() => setWire(colIdx, { color: "white" })}
               sx={{
@@ -208,7 +219,10 @@ export default function WireVertical() {
 
         {/* Rząd 3: red */}
         {wires.map((w, colIdx) => (
-          <Box key={`red-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            key={`red-${colIdx}`}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Button
               onClick={() => setWire(colIdx, { color: "red" })}
               sx={{
@@ -221,7 +235,10 @@ export default function WireVertical() {
 
         {/* Rząd 4: blue */}
         {wires.map((w, colIdx) => (
-          <Box key={`blue-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            key={`blue-${colIdx}`}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Button
               onClick={() => setWire(colIdx, { color: "blue" })}
               sx={{
@@ -234,7 +251,10 @@ export default function WireVertical() {
 
         {/* Rząd 5: red+blue */}
         {wires.map((w, colIdx) => (
-          <Box key={`rb-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            key={`rb-${colIdx}`}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Button
               onClick={() => setWire(colIdx, { color: "redBlue" })}
               sx={{
@@ -262,7 +282,10 @@ export default function WireVertical() {
 
         {/* Rząd 6: star toggle */}
         {wires.map((w, colIdx) => (
-          <Box key={`star-${colIdx}`} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            key={`star-${colIdx}`}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <Button
               variant="outlined"
               onClick={() => setWire(colIdx, { star: !w.star })}

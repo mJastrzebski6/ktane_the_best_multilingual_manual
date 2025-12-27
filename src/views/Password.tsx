@@ -4,6 +4,9 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 const WORD_LENGTH = 5;
 const MAX_COL_LETTERS = 6; // KTNE: każda kolumna ma 6 liter
@@ -14,19 +17,11 @@ function uniquePreserveOrder(chars: string[]) {
   return out;
 }
 
-function parseKTNEColumnInput(raw: string) {
-  // KTNE: interesują nas wyłącznie litery A-Z, bez spacji i separatorów
-  const letters = raw
-    .toLowerCase()
-    .split("")
-    .filter((ch) => ch >= "a" && ch <= "z");
-  const unique = uniquePreserveOrder(letters).slice(0, MAX_COL_LETTERS);
-  return unique.join("");
-}
-
 export default function Password() {
   const t = useAppStore((s) => s.t);
   const words: string[] = t.passwordWords; // lista KTNE (5-literowe)
+
+  const helpText: string = useAppStore((s) => s.t.passwordHelpText);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -47,23 +42,35 @@ export default function Password() {
   useEffect(() => {
     const id = setTimeout(() => reset(), 0);
     return () => clearTimeout(id);
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [words]);
 
-const handleInputKeyDown = (
-  e: React.KeyboardEvent<HTMLElement>,
-  colIdx: number
-) => {
-  if (e.key === "ArrowLeft") {
-    e.preventDefault();
-    inputRefs.current[colIdx - 1]?.focus();
-  }
+  const handleInputKeyDown = (
+    e: React.KeyboardEvent<HTMLElement>,
+    colIdx: number
+  ) => {
+    // TAB przełącza fokus: 1 w prawo, a na końcu wraca do pierwszego
+    if (e.key !== "Tab") return;
 
-  if (e.key === "ArrowRight") {
     e.preventDefault();
-    inputRefs.current[colIdx + 1]?.focus();
+
+    // Opcjonalnie: Shift+Tab cofa o 1 (jak standardowa nawigacja)
+    const dir = e.shiftKey ? -1 : 1;
+
+    const nextIdx = (colIdx + dir + WORD_LENGTH) % WORD_LENGTH;
+    inputRefs.current[nextIdx]?.focus();
+  };
+
+  function parseKTNEColumnInputWithAllowed(raw: string, allowed: Set<string>) {
+    const letters = raw
+      .toLowerCase()
+      .split("")
+      .filter((ch) => ch >= "a" && ch <= "z")
+      .filter((ch) => allowed.has(ch)); // tylko litery z tej kolumny
+
+    const unique = uniquePreserveOrder(letters).slice(0, MAX_COL_LETTERS);
+    return unique.join("");
   }
-};
 
   // Litery dostępne w każdej kolumnie (do wyświetlenia przycisków)
   const lettersByColumn = useMemo(() => {
@@ -108,7 +115,9 @@ const handleInputKeyDown = (
   }, [filteredWords]);
 
   const handleColumnInputChange = (colIdx: number, raw: string) => {
-    const normalized = parseKTNEColumnInput(raw);
+    const allowed = new Set(lettersByColumn[colIdx]); // litery dostępne w tej kolumnie
+    const normalized = parseKTNEColumnInputWithAllowed(raw, allowed);
+
     setColumnInputs((prev) => {
       const next = [...prev];
       next[colIdx] = normalized;
@@ -126,8 +135,6 @@ const handleInputKeyDown = (
       if (set.has(letter)) set.delete(letter);
       else {
         if (set.size >= MAX_COL_LETTERS) {
-          // KTNE ma 6 liter w kolumnie, więc nie pozwalamy przekroczyć.
-          // Jeśli chcesz zamiast tego "wypychać" najstarszą literę, zmienię.
           return prev;
         }
         set.add(letter);
@@ -137,8 +144,6 @@ const handleInputKeyDown = (
       const order = lettersByColumn[colIdx];
       const ordered = order.filter((ch) => set.has(ch));
 
-      // Jeśli klikniesz literę, której nie ma w order (teoretycznie nie powinno),
-      // dołączamy ją na koniec.
       for (const ch of set) if (!ordered.includes(ch)) ordered.push(ch);
 
       next[colIdx] = ordered.join("");
@@ -165,23 +170,73 @@ const handleInputKeyDown = (
           ...noSelectSx,
           display: "flex",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
+          gap: 2,
           mb: 3,
-      
+          width: "100%",
         }}
         onMouseDown={preventMouseDownSelect}
       >
-        <Button variant="contained" color="error" onClick={reset} sx={noSelectSx}>
-          Reset
-        </Button>
+        {/* Lewa strona */}
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 0 }}
+        >
+          <Button
+            variant="contained"
+            color="error"
+            onClick={reset}
+            sx={noSelectSx}
+          >
+            Reset
+          </Button>
 
-        <Typography variant="h5" sx={{ ml: 2, ...noSelectSx }}>
-          Password
-        </Typography>
+          <Typography variant="h5" sx={{ ...noSelectSx, whiteSpace: "nowrap" }}>
+            Password
+          </Typography>
 
-        <Typography variant="body2" sx={{ ml: 2, opacity: 0.7 }}>
-          Wpisz litery widoczne w kolumnie (max 6). Pusta kolumna = brak ograniczenia.
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              opacity: 0.7,
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+            title="Wpisz litery widoczne w kolumnie (max 6). Pusta kolumna = brak ograniczenia."
+          >
+            Wpisz litery widoczne w kolumnie (max 6). Pusta kolumna = brak
+            ograniczenia.
+          </Typography>
+        </Box>
+
+        {/* Prawa strona (ikonka) */}
+        <Box sx={{ flexShrink: 0 }} onMouseDown={preventMouseDownSelect}>
+          <Tooltip
+            arrow
+            placement="bottom-end"
+            enterDelay={150}
+            title={
+              <Box
+                sx={{
+                  maxWidth: 520,
+                  whiteSpace: "pre-wrap",
+                  fontSize: 13,
+                  lineHeight: 1.4,
+                }}
+              >
+                {helpText}
+              </Box>
+            }
+          >
+            <IconButton
+              size="small"
+              aria-label="Jak używać modułu Password"
+              onMouseDown={preventMouseDownSelect}
+            >
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       <Box
@@ -200,24 +255,27 @@ const handleInputKeyDown = (
               key={colIdx}
               sx={{ ...noSelectSx, display: "flex", flexDirection: "column" }}
             >
-             <TextField
-              size="small"
-              label={`Pozycja ${colIdx + 1}`}
-              value={columnInputs[colIdx]}
-              onChange={(e) => handleColumnInputChange(colIdx, e.target.value)}
-              onKeyDown={(e) => handleInputKeyDown(e, colIdx)}
-              inputRef={(el) => (inputRefs.current[colIdx] = el)}
-              onMouseDown={(e) => e.stopPropagation()}
-              sx={{ mb: 1, width: "120px" }}
-              helperText={`${columnInputs[colIdx].length}/${MAX_COL_LETTERS}`}
-              slotProps={{
-              input: {
-                spellCheck: false,
-                autoCapitalize: "none",
-                autoCorrect: "off",
-              },
-            }}
-            />
+              <TextField
+                size="small"
+                label={`Pozycja ${colIdx + 1}`}
+                value={columnInputs[colIdx]}
+                onChange={(e) =>
+                  handleColumnInputChange(colIdx, e.target.value)
+                }
+                onKeyDown={(e) => handleInputKeyDown(e, colIdx)}
+                inputRef={(el) => (inputRefs.current[colIdx] = el)}
+                onMouseDown={(e) => e.stopPropagation()}
+                sx={{ mb: 1, width: "120px" }}
+                helperText={`${columnInputs[colIdx].length}/${MAX_COL_LETTERS}`}
+                slotProps={{
+                  input: {
+                    spellCheck: false,
+                    autoCapitalize: "none",
+                    autoCorrect: "off",
+                  },
+                }}
+              />
+
               {letters.map((letter) => {
                 const selected = allowedSets[colIdx].has(letter);
                 const stillPossible = activeLettersByColumn[colIdx].has(letter);
@@ -238,7 +296,11 @@ const handleInputKeyDown = (
                       alignItems: "center",
                       justifyContent: "center",
                       backgroundColor: selected ? "#4caf50" : "#eee",
-                      color: selected ? "#fff" : stillPossible ? "red" : "black",
+                      color: selected
+                        ? "#fff"
+                        : stillPossible
+                          ? "red"
+                          : "black",
                       border: "1px solid #ccc",
                       borderRadius: "4px",
                       cursor: "pointer",

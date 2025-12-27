@@ -7,6 +7,9 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 
 import { useAppStore } from "../store/AppStore";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 // Extended Morse Alphabet — Polish + International
 const MORSE_MAP: Record<string, string> = {
@@ -54,6 +57,8 @@ type Strength = "prefix" | "cyclic" | "none";
 export default function Morse() {
   const langFile = useAppStore((s) => s.t);
   const morseWords = (langFile.morseWords ?? {}) as Record<string, number>;
+
+  const helpText: string = useAppStore((s) => s.t.morseHelpText);
 
   const [pattern, setPattern] = React.useState("");
 
@@ -123,11 +128,39 @@ export default function Morse() {
   return (
     <Box sx={{ userSelect: "none" }}>
       {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box
+        sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
+      >
         <Button variant="contained" color="error" onClick={reset}>
           Reset
         </Button>
+
         <Typography variant="h5">Morse</Typography>
+
+        {/* Ikonka zawsze na końcu */}
+        <Box sx={{ ml: "auto", flexShrink: 0 }}>
+          <Tooltip
+            arrow
+            placement="bottom-end"
+            enterDelay={150}
+            title={
+              <Box
+                sx={{
+                  maxWidth: 520,
+                  whiteSpace: "pre-wrap",
+                  fontSize: 13,
+                  lineHeight: 1.4,
+                }}
+              >
+                {helpText}
+              </Box>
+            }
+          >
+            <IconButton size="small" aria-label="Jak używać modułu Morse">
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       <Divider sx={{ my: 2 }} />
@@ -151,13 +184,13 @@ export default function Morse() {
         value={pattern}
         onChange={onTextChange}
         slotProps={{
-        input: {
-          style: {
-            fontFamily: "monospace",
-            fontSize: 18,
+          input: {
+            style: {
+              fontFamily: "monospace",
+              fontSize: 18,
+            },
           },
-        },
-      }}
+        }}
         autoFocus
       />
 

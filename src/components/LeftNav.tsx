@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Checkbox,
   Divider,
   FormControlLabel,
   FormGroup,
@@ -10,8 +9,10 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import { useAppStore, type ViewId } from "../store/AppStore";
+import { useAppStore, type ViewId, type BatteryCount } from "../store/AppStore";
+import { useEffect } from "react";
 
+import { readStoredLang, storeLang } from "../utils/Storage";
 // wires
 import WireHorizontal from "../images/WireHorizontalComponent.svg";
 import WireVertical from "../images/WireVerticalComponent.svg";
@@ -50,32 +51,47 @@ const items: { id: ViewId; img: string }[] = [
   { id: "needy_knob", img: NeedyKnobComponent },
 ];
 
-function BorderedInlineCheckbox(props: {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+const LANG_STORAGE_KEY = "app.lang";
+
+function BorderedInlineChoice(props: {
+  selected: boolean;
+  onSelect: () => void;
   label: string;
 }) {
-  const { checked, onChange, label } = props;
+  const { selected, onSelect, label } = props;
 
   return (
     <Box
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onSelect();
+      }}
       sx={{
+        cursor: "pointer",
         border: "1px solid rgba(0,0,0,0.18)",
         borderRadius: 1,
-        px: 0.75,
-        py: 0.25,
+        px: 0.9,
+        py: 0.45,
         display: "flex",
         alignItems: "center",
-        gap: 0.5,
+        gap: 0.75,
         minWidth: 0,
-        backgroundColor: "rgba(0,0,0,0.02)",
+        userSelect: "none",
+        backgroundColor: selected ? "rgba(0,0,0,0.10)" : "rgba(0,0,0,0.02)",
+        "&:hover": { opacity: 0.9 },
       }}
     >
-      <Checkbox
-        size="small"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        sx={{ p: 0.5 }}
+      <Box
+        sx={{
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          border: "1px solid rgba(0,0,0,0.35)",
+          backgroundColor: selected ? "rgba(0,0,0,0.55)" : "transparent",
+          flexShrink: 0,
+        }}
       />
       <Typography variant="caption" sx={{ whiteSpace: "nowrap" }}>
         {label}
@@ -92,9 +108,26 @@ export function LeftNav() {
     availableLangs,
     bombFacts,
     setBombFacts,
-    setBatteryFlag,
+    setBatteryCount,
     resetBombFacts,
   } = useAppStore();
+
+  const batteryCount = bombFacts.batteryCount;
+
+  const setCount = (c: BatteryCount) => setBatteryCount(c);
+
+  useEffect(() => {
+    const keys = availableLangs.map((l) => l.key);
+    const initial = readStoredLang(keys);
+
+    if (!localStorage.getItem(LANG_STORAGE_KEY)) {
+      storeLang(initial);
+    }
+
+    // jeśli store ma inny lang (np. domyślny), ustaw z localStorage
+    if (lang !== initial) setLang(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableLangs]);
 
   return (
     <Box
@@ -107,7 +140,7 @@ export function LeftNav() {
         flexDirection: "column",
         borderRight: "1px solid #ddd",
         bgcolor: "background.paper",
-        overflow: "hidden", // brak scrolla dla całego nav
+        overflow: "hidden",
       }}
     >
       {/* LANGUAGE SELECT */}
@@ -120,7 +153,11 @@ export function LeftNav() {
           size="small"
           fullWidth
           value={lang}
-          onChange={(e) => setLang(e.target.value)}
+          onChange={(e) => {
+            const next = String(e.target.value);
+            setLang(next);
+            storeLang(next);
+          }}
         >
           {availableLangs.map((lng) => (
             <MenuItem key={lng.key} value={lng.key}>
@@ -130,14 +167,14 @@ export function LeftNav() {
         </Select>
       </Box>
 
-      {/* NAV GRID (bez scrolla, obrazki w całości widoczne) */}
+      {/* NAV GRID */}
       <Box
         sx={{
           flex: 1,
           minHeight: 0,
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gridTemplateRows: "repeat(4, minmax(0, 1fr))", // 12 elementów => 4 rzędy
+          gridTemplateRows: "repeat(4, minmax(0, 1fr))",
           gap: 1,
           p: 1,
           overflow: "hidden",
@@ -165,7 +202,7 @@ export function LeftNav() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "contain", // pełny obraz, bez obcinania
+                objectFit: "contain",
                 display: "block",
               }}
             />
@@ -173,13 +210,13 @@ export function LeftNav() {
         ))}
       </Box>
 
-      {/* GLOBAL STATE PANEL (RESETOWALNE) */}
+      {/* GLOBAL STATE PANEL */}
       <Divider />
       <Box
         sx={{
           p: 1,
           borderTop: "1px solid rgba(0,0,0,0.06)",
-          overflow: "hidden", // brak scrolla także tutaj
+          overflow: "hidden",
         }}
       >
         <Box
@@ -271,39 +308,29 @@ export function LeftNav() {
           <Divider sx={{ my: 0.5 }} />
 
           <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
-            Baterie (spójne zależności)
+            Baterie (0 / 1 / 2 / 3+)
           </Typography>
 
-          {/* BATTERIES: podpisy >1, >=2, >2 + obok siebie + border per control */}
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 0.75,
-            }}
-          >
-            <BorderedInlineCheckbox
-              checked={bombFacts.batteriesMoreThan1}
-              onChange={(checked) =>
-                setBatteryFlag("batteriesMoreThan1", checked)
-              }
-              label=">1"
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+            <BorderedInlineChoice
+              selected={batteryCount === 0}
+              onSelect={() => setCount(0)}
+              label="0"
             />
-
-            <BorderedInlineCheckbox
-              checked={bombFacts.batteries2OrMore}
-              onChange={(checked) =>
-                setBatteryFlag("batteries2OrMore", checked)
-              }
-              label=">=2"
+            <BorderedInlineChoice
+              selected={batteryCount === 1}
+              onSelect={() => setCount(1)}
+              label="1"
             />
-
-            <BorderedInlineCheckbox
-              checked={bombFacts.batteriesMoreThan2}
-              onChange={(checked) =>
-                setBatteryFlag("batteriesMoreThan2", checked)
-              }
-              label=">2"
+            <BorderedInlineChoice
+              selected={batteryCount === 2}
+              onSelect={() => setCount(2)}
+              label="2"
+            />
+            <BorderedInlineChoice
+              selected={batteryCount === 3}
+              onSelect={() => setCount(3)}
+              label="3+"
             />
           </Box>
         </FormGroup>
