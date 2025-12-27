@@ -16,7 +16,7 @@ export default function NeedyKnob() {
           variant="h5"
           sx={{ ml: 2 }} // lekki lewy margines
         >
-          Wires VENN
+          Needy Knob
         </Typography>
       </Box>
 

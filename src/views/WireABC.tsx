@@ -148,7 +148,7 @@ export default function WireABC() {
           variant="h5"
           sx={{ ml: 2 }} // lekki lewy margines
         >
-          Password
+          Wires ABC
         </Typography>
       </Box>
 
@@ -177,7 +177,7 @@ export default function WireABC() {
               </TableCell>
             </TableRow>
 
-            <TableRow>
+            <TableRow sx={{borderBottom: "3px solid rgba(0,0,0,0.35)"}}>
               <TableCell sx={headerCellSx(1)}>Wire Occurrence</TableCell>
               <TableCell sx={headerCellSx(2)}>Cut if connected to</TableCell>
 

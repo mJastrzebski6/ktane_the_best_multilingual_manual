@@ -16,10 +16,16 @@ export default function BigButton() {
           variant="h5"
           sx={{ ml: 2 }} // lekki lewy margines
         >
-          Wires VENN
+          BigButton
         </Typography>
       </Box>
 
+  <Typography
+          variant="h1"
+          sx={{ ml: 2, color:"red" }} 
+        >
+          TODO
+        </Typography>
       <Box
         component="img"
         src={BigButtonSolution}

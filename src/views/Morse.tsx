@@ -150,7 +150,15 @@ export default function Morse() {
         sx={{ mt: 2 }}
         value={pattern}
         onChange={onTextChange}
-        inputProps={{ style: { fontFamily: "monospace", fontSize: 18 } }}
+        slotProps={{
+        input: {
+          style: {
+            fontFamily: "monospace",
+            fontSize: 18,
+          },
+        },
+      }}
+        autoFocus
       />
 
       <Divider sx={{ my: 2 }} />

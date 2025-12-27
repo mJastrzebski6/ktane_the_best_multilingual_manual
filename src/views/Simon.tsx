@@ -170,8 +170,8 @@ export default function Simon() {
           Simon
         </Typography>
 
-        <Typography variant="body2" sx={{ opacity: 0.75, ...noSelectSx }}>
-          Numer seryjny: {serialHasVowel ? "z samogłoską" : "bez samogłoski"}
+        <Typography variant="body2" sx={{ opacity: 0.75, ...noSelectSx, color: "red"}}>
+          POTRZEBNY NUMER SERYJNY: {serialHasVowel ? "z samogłoską" : "bez samogłoski"}
         </Typography>
       </Box>
 
