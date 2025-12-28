@@ -69,7 +69,7 @@ export default function Keypad() {
   // kolumny jako sety dla szybkich sprawdzeń
   const columnSets = useMemo(
     () => columns.map((c) => new Set<SymbolId>(c)),
-    [],
+    []
   );
 
   // które kolumny pasują do aktualnego selected (czyli zawierają wszystkie zaznaczone)
@@ -110,7 +110,7 @@ export default function Keypad() {
       }
       return false;
     },
-    [selected.length, selectedSet, matchingColumnIdxs, columnSets],
+    [selected.length, selectedSet, matchingColumnIdxs, columnSets]
   );
 
   const handleSymbolToggle = useCallback(
@@ -125,10 +125,10 @@ export default function Keypad() {
       if (!canAddCandidate(id)) return;
 
       setSelected((prev) =>
-        prev.length >= MAX_SELECTED ? prev : [...prev, id],
+        prev.length >= MAX_SELECTED ? prev : [...prev, id]
       );
     },
-    [selectedSet, canAddCandidate],
+    [selectedSet, canAddCandidate]
   );
 
   const handleReset = useCallback(() => setSelected([]), []);
@@ -150,6 +150,7 @@ export default function Keypad() {
     // jeśli jeszcze niejednoznaczne: pokaż (opcjonalnie) kolejność klikania
     return selected;
   }, [resolvedColumn, selectedSet, selected]);
+
   return (
     <Box
       sx={{
@@ -219,7 +220,7 @@ export default function Keypad() {
                   ? "action.selected"
                   : "background.paper",
                 cursor: isDisabled ? "not-allowed" : "pointer",
-                opacity: isDisabled ? 0.25 : 1,
+                opacity: isDisabled ? 0.05 : 1,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
