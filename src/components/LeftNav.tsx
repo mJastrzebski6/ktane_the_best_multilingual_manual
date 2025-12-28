@@ -141,6 +141,11 @@ export function LeftNav() {
         borderRight: "1px solid #ddd",
         bgcolor: "background.paper",
         overflow: "hidden",
+
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
       }}
     >
       {/* LANGUAGE SELECT */}

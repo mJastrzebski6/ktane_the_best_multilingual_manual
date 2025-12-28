@@ -1,34 +1,22 @@
 import KnobSolution from "../images/Knob/KnobSolution.png";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import ModuleHeader from "../components/ModuleHeader";
 
 export default function NeedyKnob() {
   return (
-    <>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center", // pionowe wyśrodkowanie
-          justifyContent: "flex-start",
-          mb: 1,
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{ ml: 2 }} // lekki lewy margines
-        >
-          Needy Knob
-        </Typography>
-      </Box>
+    <Box>
+      <ModuleHeader title="Needy Knob" />
 
       <Box
         component="img"
         src={KnobSolution}
+        alt="Needy Knob solution"
         sx={{
           width: 800,
           maxWidth: "100%",
           height: "auto",
         }}
       />
-    </>
+    </Box>
   );
 }

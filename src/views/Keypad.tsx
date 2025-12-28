@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import ModuleHeader from "../components/ModuleHeader";
 import { KeypadImageById, type SymbolId } from "./KeypadImages";
 
 const columns: SymbolId[][] = [
@@ -51,7 +51,6 @@ export default function Keypad() {
   const [selected, setSelected] = useState<SymbolId[]>([]);
   const selectedSet = useMemo(() => new Set<SymbolId>(selected), [selected]);
 
-  // wszystkie unikalne symbole (nic nie znika z listy u góry)
   const allUniqueSymbols = useMemo(() => {
     const seen = new Set<SymbolId>();
     const out: SymbolId[] = [];
@@ -66,13 +65,11 @@ export default function Keypad() {
     return out;
   }, []);
 
-  // kolumny jako sety dla szybkich sprawdzeń
   const columnSets = useMemo(
     () => columns.map((c) => new Set<SymbolId>(c)),
     []
   );
 
-  // które kolumny pasują do aktualnego selected (czyli zawierają wszystkie zaznaczone)
   const matchingColumnIdxs = useMemo(() => {
     if (selected.length === 0) return columns.map((_, idx) => idx);
 
@@ -89,20 +86,15 @@ export default function Keypad() {
       if (ok) idxs.push(i);
     }
     return idxs;
-  }, [selected, columnSets, columnSets.length]);
+  }, [selected, columnSets]);
 
   const hasValidColumnForSelected =
     selected.length <= 1 ? true : matchingColumnIdxs.length > 0;
 
-  // kandydat jest "możliwy do dodania", jeśli istnieje jakaś pasująca kolumna,
-  // w której występuje też kandydat
   const canAddCandidate = useCallback(
     (candidate: SymbolId) => {
-      if (selectedSet.has(candidate)) return true; // zawsze można odklikać
+      if (selectedSet.has(candidate)) return true;
       if (selected.length >= MAX_SELECTED) return false;
-
-      // jeśli już jesteśmy w złej kombinacji, nie ma sensu dodawać kolejnych
-      // (odwracalność zapewnia odklikanie)
       if (selected.length > 1 && matchingColumnIdxs.length === 0) return false;
 
       for (const idx of matchingColumnIdxs) {
@@ -115,15 +107,11 @@ export default function Keypad() {
 
   const handleSymbolToggle = useCallback(
     (id: SymbolId) => {
-      // odklik
       if (selectedSet.has(id)) {
         setSelected((prev) => prev.filter((x) => x !== id));
         return;
       }
-
-      // dodaj tylko jeśli możliwe
       if (!canAddCandidate(id)) return;
-
       setSelected((prev) =>
         prev.length >= MAX_SELECTED ? prev : [...prev, id]
       );
@@ -134,20 +122,13 @@ export default function Keypad() {
   const handleReset = useCallback(() => setSelected([]), []);
 
   const resolvedColumn = useMemo<SymbolId[] | null>(() => {
-    if (matchingColumnIdxs.length === 1) {
-      return columns[matchingColumnIdxs[0]];
-    }
+    if (matchingColumnIdxs.length === 1) return columns[matchingColumnIdxs[0]];
     return null;
   }, [matchingColumnIdxs]);
 
   const bottomList = useMemo<SymbolId[]>(() => {
-    // jeśli kolumna jest jednoznaczna: bierzemy tylko zaznaczone 4,
-    // ale w kolejności występowania w kolumnie
-    if (resolvedColumn) {
+    if (resolvedColumn)
       return resolvedColumn.filter((id) => selectedSet.has(id));
-    }
-
-    // jeśli jeszcze niejednoznaczne: pokaż (opcjonalnie) kolejność klikania
     return selected;
   }, [resolvedColumn, selectedSet, selected]);
 
@@ -161,24 +142,11 @@ export default function Keypad() {
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          mb: 2,
-          gap: 2,
-        }}
-      >
-        <Button variant="contained" color="error" onClick={handleReset}>
-          Reset
-        </Button>
-        <Typography variant="h5">KEYPAD</Typography>
+      <ModuleHeader title="KEYPAD" onReset={handleReset} />
 
-        <Typography variant="body2" sx={{ ml: "auto", opacity: 0.8 }}>
-          Wybrane: {selected.length}/{MAX_SELECTED}
-        </Typography>
-      </Box>
+      <Typography variant="body2" sx={{ mb: 2, opacity: 0.8 }}>
+        Wybrane: {selected.length}/{MAX_SELECTED}
+      </Typography>
 
       {!hasValidColumnForSelected && (
         <Typography
@@ -251,13 +219,11 @@ export default function Keypad() {
                   objectFit: "contain",
                   display: "block",
                   filter: isDisabled ? "grayscale(100%)" : "none",
-
                   userSelect: "none",
                   WebkitUserSelect: "none",
                   MozUserSelect: "none",
                   msUserSelect: "none",
-
-                  pointerEvents: "none", // klik obsługuje parent-button, img nie "łapie" interakcji
+                  pointerEvents: "none",
                 }}
               />
             </Box>
@@ -297,7 +263,6 @@ export default function Keypad() {
                   sx={{
                     width: 56,
                     height: 56,
-
                     userSelect: "none",
                     WebkitUserSelect: "none",
                     MozUserSelect: "none",
@@ -307,6 +272,7 @@ export default function Keypad() {
                 />
               </Box>
             ))}
+
             {resolvedColumn && (
               <Typography variant="body2" sx={{ opacity: 0.8, mr: 1 }}>
                 Kolumna: {matchingColumnIdxs[0] + 1}

@@ -11,9 +11,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import { useAppStore } from "../store/AppStore";
-
-// TODO: podmień import na właściwy w Twoim projekcie
-// import { useAppStore } from "../store/useAppStore";
+import ModuleHeader from "../components/ModuleHeader";
 
 type SimonColor = "red" | "blue" | "green" | "yellow";
 type Strikes = 0 | 1 | 2;
@@ -25,10 +23,7 @@ const COLOR_LABEL: Record<SimonColor, string> = {
   yellow: "Żółty",
 };
 
-const COLOR_SX: Record<
-  SimonColor,
-  { bgcolor: string; color: string; border?: string }
-> = {
+const COLOR_SX: Record<SimonColor, { bgcolor: string; color: string }> = {
   red: { bgcolor: "#d32f2f", color: "#fff" },
   blue: { bgcolor: "#1976d2", color: "#fff" },
   green: { bgcolor: "#2e7d32", color: "#fff" },
@@ -65,17 +60,6 @@ export default function Simon() {
   const [flashes, setFlashes] = React.useState<SimonColor[]>([]);
   const [presses, setPresses] = React.useState<SimonColor[]>([]);
 
-  const preventMouseDownSelect = (e: React.MouseEvent) => {
-    e.preventDefault();
-  };
-
-  const noSelectSx = {
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    MozUserSelect: "none",
-    msUserSelect: "none",
-  } as const;
-
   const activeTableKey: "hasVowel" | "noVowel" = serialHasVowel
     ? "hasVowel"
     : "noVowel";
@@ -84,15 +68,14 @@ export default function Simon() {
     (
       nextFlashes: SimonColor[],
       nextStrikes: Strikes,
-      nextTableKey: "hasVowel" | "noVowel",
+      nextTableKey: "hasVowel" | "noVowel"
     ) => {
       const map = SIMON_MAP[nextTableKey][nextStrikes];
       return nextFlashes.map((f) => map[f]);
     },
-    [],
+    []
   );
 
-  // Przeliczaj drugą tablicę, ale zostaw kliknięcia gracza (flashes).
   React.useEffect(() => {
     setPresses(() => recomputePresses(flashes, strikes, activeTableKey));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,7 +104,7 @@ export default function Simon() {
   const renderSeq = (seq: SimonColor[]) => {
     if (seq.length === 0) {
       return (
-        <Typography variant="body2" sx={{ opacity: 0.7, ...noSelectSx }}>
+        <Typography variant="body2" sx={{ opacity: 0.7 }}>
           (pusto)
         </Typography>
       );
@@ -134,7 +117,6 @@ export default function Simon() {
             label={COLOR_LABEL[c]}
             size="small"
             sx={{
-              ...noSelectSx,
               bgcolor: COLOR_SX[c].bgcolor,
               color: COLOR_SX[c].color,
               fontWeight: 600,
@@ -146,63 +128,28 @@ export default function Simon() {
   };
 
   return (
-    <Box sx={{ ...noSelectSx }} onMouseDown={preventMouseDownSelect}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          mb: 1,
-          gap: 2,
-        }}
-      >
-        <Button
-          variant="contained"
-          color="error"
-          onClick={resetModule}
-          sx={noSelectSx}
-        >
-          Reset
-        </Button>
-
-        <Typography variant="h5" sx={{ ...noSelectSx }}>
-          Simon
-        </Typography>
-
-        <Typography variant="body2" sx={{ opacity: 0.75, ...noSelectSx, color: "red"}}>
-          POTRZEBNY: NUMER SERYJNY - {serialHasVowel ? "z samogłoską" : "bez samogłoski"}
-        </Typography>
-      </Box>
+    <Box sx={{ userSelect: "none" }}>
+      <ModuleHeader
+        title="Simon Says"
+        onReset={resetModule}
+        requiredData={[
+          `NUMER SERYJNY - ${serialHasVowel ? "z samogłoską" : "bez samogłoski"}`,
+        ]}
+      />
 
       <Divider sx={{ mb: 2 }} />
 
       {/* Strikes */}
       <FormControl sx={{ mb: 2 }}>
-        <FormLabel sx={{ ...noSelectSx }}>Liczba błędów (strikes)</FormLabel>
+        <FormLabel>Liczba błędów (strikes)</FormLabel>
         <RadioGroup
           row
           value={String(strikes)}
           onChange={(e) => onStrikesChange(e.target.value)}
         >
-          <FormControlLabel
-            value="0"
-            control={<Radio />}
-            label="0"
-            sx={noSelectSx}
-          />
-          <FormControlLabel
-            value="1"
-            control={<Radio />}
-            label="1"
-            sx={noSelectSx}
-          />
-          <FormControlLabel
-            value="2"
-            control={<Radio />}
-            label="2"
-            sx={noSelectSx}
-          />
+          <FormControlLabel value="0" control={<Radio />} label="0" />
+          <FormControlLabel value="1" control={<Radio />} label="1" />
+          <FormControlLabel value="2" control={<Radio />} label="2" />
         </RadioGroup>
       </FormControl>
 
@@ -214,7 +161,6 @@ export default function Simon() {
             variant="contained"
             onClick={() => onColorClick(c)}
             sx={{
-              ...noSelectSx,
               bgcolor: COLOR_SX[c].bgcolor,
               color: COLOR_SX[c].color,
               "&:hover": { bgcolor: COLOR_SX[c].bgcolor },
@@ -230,14 +176,14 @@ export default function Simon() {
       {/* Sequences */}
       <Box sx={{ display: "grid", gap: 2 }}>
         <Box>
-          <Typography variant="subtitle1" sx={{ mb: 1, ...noSelectSx }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Kliknięte przez gracza (kolory, które migały)
           </Typography>
           {renderSeq(flashes)}
         </Box>
 
         <Box>
-          <Typography variant="subtitle1" sx={{ mb: 1, ...noSelectSx }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Do kliknięcia (przeliczone wg tabeli)
           </Typography>
           {renderSeq(presses)}

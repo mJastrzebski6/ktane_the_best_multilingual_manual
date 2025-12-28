@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useAppStore } from "../store/AppStore";
+import ModuleHeader from "../components/ModuleHeader";
 
 type WireColor = "white" | "red" | "blue" | "redBlue";
 
@@ -21,17 +22,6 @@ const DEFAULT_WIRE: WireState = {
 const createDefaultWires = () =>
   Array.from({ length: 6 }, () => ({ ...DEFAULT_WIRE })) as WireState[];
 
-/**
- * Mapowanie 1:1 z tabelą z obrazka:
- * Kolumny:
- *  0: LED off, no star
- *  1: LED off, star
- *  2: LED on,  no star
- *  3: LED on,  star
- *
- * Wiersze (kolory):
- *  white, red, blue, redBlue
- */
 const TABLE: Record<WireColor, [Decision, Decision, Decision, Decision]> = {
   white: ["CUT", "CUT", "DONT", "B"],
   red: ["S", "CUT", "B", "B"],
@@ -50,7 +40,7 @@ function shouldCut(
   wire: WireState,
   bombFacts: {
     hasParallelPort: boolean;
-    batteryCount: number; // 0/1/2/3(3+)
+    batteryCount: number;
     serialLastDigitEven: boolean;
   }
 ): boolean {
@@ -138,27 +128,16 @@ export default function WireVertical() {
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          mb: 1,
-          gap: 2,
-        }}
-      >
-        <Button variant="contained" color="error" onClick={resetWires}>
-          Reset
-        </Button>
-        <Typography variant="h5" sx={{ ml: 2 }}>
-          Wires VENN
-        </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.75, color: "red" }}>
-          POTRZEBNE: BATERIE, PORT RÓWNOLEGŁY, PARZYSTOŚĆ NUMERU SERYJNEGO
-        </Typography>
-      </Box>
+      <ModuleHeader
+        title="Wires VENN"
+        onReset={resetWires}
+        requiredData={[
+          "BATERIE",
+          "PORT RÓWNOLEGŁY",
+          "PARZYSTOŚĆ NUMERU SERYJNEGO",
+        ]}
+      />
 
-      {/* 6 kolumn, 7 wierszy */}
       <Box
         sx={{
           display: "grid",
@@ -196,17 +175,10 @@ export default function WireVertical() {
         })}
 
         <Box
-          sx={{
-            gridColumn: "1 / -1",
-            display: "flex",
-            alignItems: "center",
-          }}
+          sx={{ gridColumn: "1 / -1", display: "flex", alignItems: "center" }}
         >
           <Box
-            sx={{
-              width: "100%",
-              borderBottom: "3px solid rgba(0,0,0,0.6)",
-            }}
+            sx={{ width: "100%", borderBottom: "3px solid rgba(0,0,0,0.6)" }}
           />
         </Box>
 
@@ -275,17 +247,10 @@ export default function WireVertical() {
         ))}
 
         <Box
-          sx={{
-            gridColumn: "1 / -1",
-            display: "flex",
-            alignItems: "center",
-          }}
+          sx={{ gridColumn: "1 / -1", display: "flex", alignItems: "center" }}
         >
           <Box
-            sx={{
-              width: "100%",
-              borderBottom: "3px solid rgba(0,0,0,0.6)",
-            }}
+            sx={{ width: "100%", borderBottom: "3px solid rgba(0,0,0,0.6)" }}
           />
         </Box>
 
@@ -312,17 +277,10 @@ export default function WireVertical() {
         ))}
 
         <Box
-          sx={{
-            gridColumn: "1 / -1",
-            display: "flex",
-            alignItems: "center",
-          }}
+          sx={{ gridColumn: "1 / -1", display: "flex", alignItems: "center" }}
         >
           <Box
-            sx={{
-              width: "100%",
-              borderBottom: "3px solid rgba(255,0,0,1)",
-            }}
+            sx={{ width: "100%", borderBottom: "3px solid rgba(255,0,0,1)" }}
           />
         </Box>
 

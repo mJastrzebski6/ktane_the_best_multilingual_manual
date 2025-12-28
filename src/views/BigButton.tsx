@@ -1,31 +1,16 @@
 import BigButtonSolution from "../images/BigButton/BigButtonSolution.png";
 import { Box, Typography } from "@mui/material";
+import ModuleHeader from "../components/ModuleHeader";
 
 export default function BigButton() {
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center", // pionowe wyśrodkowanie
-          justifyContent: "flex-start",
-          mb: 1,
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{ ml: 2 }} // lekki lewy margines
-        >
-          BigButton
-        </Typography>
-      </Box>
+      <ModuleHeader title="BigButton" />
 
-  <Typography
-          variant="h1"
-          sx={{ ml: 2, color:"red" }} 
-        >
-          TODO
-        </Typography>
+      <Typography variant="h1" sx={{ color: "red" }}>
+        TODO
+      </Typography>
+
       <Box
         component="img"
         src={BigButtonSolution}

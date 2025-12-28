@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useAppStore } from "../store/AppStore";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -11,14 +11,13 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
+import ModuleHeader from "../components/ModuleHeader";
 
 type WhosFirstRow = {
   key: string;
   words: string[];
 };
 
-// ZMIANA: teraz format to KOLUMNA_WIERSZ, np. P_Ś, L_G
 type PositionCode = "P_G" | "P_Ś" | "P_D" | "L_G" | "L_Ś" | "L_D";
 
 function takeUntilIncludingKey(words: string[], key: string): string[] {
@@ -41,13 +40,11 @@ function parsePosition(pos?: string): PositionCode | null {
 }
 
 function positionLabel(pos: PositionCode) {
-  // ZMIANA: najpierw kolumna, potem wiersz
   const [col, row] = pos.split("_") as ["P" | "L", "G" | "Ś" | "D"];
 
-  const colName = col === "P" ? "Lewo" : "Prawo"; // P = prawa strona? U Ciebie P/L to Lewo/Prawo: P=lewo, L=prawo? Patrz niżej.
+  const colName = col === "P" ? "Lewo" : "Prawo";
   const rowName = row === "G" ? "Góra" : row === "Ś" ? "Środek" : "Dół";
 
-  // Jeśli w Twojej nomenklaturze jest odwrotnie (P=Prawo, L=Lewo), zamień powyższy ternary.
   return { short: `${col}/${row}`, long: `${colName} / ${rowName}` };
 }
 
@@ -55,6 +52,7 @@ export default function WhosOnFirst() {
   const t = useAppStore((s) => s.t);
 
   const table = (t.whosfirstwordstable ?? []) as WhosFirstRow[];
+  const helpText: string = useAppStore((s) => s.t.whosonfirstHelpText);
 
   const rows = useMemo(() => {
     return [...table]
@@ -81,26 +79,10 @@ export default function WhosOnFirst() {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        Who&apos;s on First
-      </Typography>
+      <ModuleHeader title="Who's on First" helpText={helpText} />
 
       {/* STATYCZNA LISTA: CO → GDZIE */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-          Mapa pozycji (co → gdzie)
-        </Typography>
-
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: "block", mb: 1 }}
-        >
-          Legenda: P/L = Lewy/Prawy, G/Ś/D = Góra/Środek/Dół
-        </Typography>
-
-        <Divider sx={{ mb: 1.5 }} />
-
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
           {positionPairs.map(({ key, pos }) => {
             const lab = positionLabel(pos);
@@ -116,7 +98,7 @@ export default function WhosOnFirst() {
 
           {positionPairs.length === 0 && (
             <Typography variant="body2" color="text.secondary">
-              Brak mapy pozycji w pliku językowym.
+              No data in this language file
             </Typography>
           )}
         </Stack>

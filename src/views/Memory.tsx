@@ -1,30 +1,15 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import ModuleHeader from "../components/ModuleHeader";
 
 export default function Memory() {
-   return (
-    <>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center", // pionowe wyśrodkowanie
-          justifyContent: "flex-start",
-          mb: 1,
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{ ml: 2 }} // lekki lewy margines
-        >
-          Memory
-        </Typography>
-      </Box>
-       <Typography
-          variant="h1"
-          sx={{ ml: 2, color:"red" }} 
-        >
-          TODO
-        </Typography>
-    </>
+  return (
+    <Box>
+      <ModuleHeader title="Memory" />
+
+      <Typography variant="h1" sx={{ ml: 2, color: "red" }}>
+        TODO
+      </Typography>
+    </Box>
   );
 }

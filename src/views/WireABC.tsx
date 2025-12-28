@@ -7,10 +7,10 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   Box,
   Typography,
 } from "@mui/material";
+import ModuleHeader from "../components/ModuleHeader";
 
 type WireColor = "red" | "blue" | "black";
 
@@ -132,25 +132,7 @@ export default function WireABC() {
 
   return (
     <Box>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center", // pionowe wyśrodkowanie
-          justifyContent: "flex-start",
-          mb: 1,
-        }}
-      >
-        <Button variant="contained" color="error" onClick={handleReset}>
-          Reset
-        </Button>
-
-        <Typography
-          variant="h5"
-          sx={{ ml: 2 }} // lekki lewy margines
-        >
-          Wires ABC
-        </Typography>
-      </Box>
+      <ModuleHeader title="Wires ABC" onReset={handleReset} />
 
       <TableContainer component={Paper} elevation={2}>
         <Table
@@ -177,7 +159,7 @@ export default function WireABC() {
               </TableCell>
             </TableRow>
 
-            <TableRow sx={{borderBottom: "3px solid rgba(0,0,0,0.35)"}}>
+            <TableRow sx={{ borderBottom: "3px solid rgba(0,0,0,0.35)" }}>
               <TableCell sx={headerCellSx(1)}>Wire Occurrence</TableCell>
               <TableCell sx={headerCellSx(2)}>Cut if connected to</TableCell>
 

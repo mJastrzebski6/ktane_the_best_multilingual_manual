@@ -1,15 +1,12 @@
 import React, { useMemo, useEffect, useState, useRef } from "react";
 import { useAppStore } from "../store/AppStore";
-import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import ModuleHeader from "../components/ModuleHeader";
 
 const WORD_LENGTH = 5;
-const MAX_COL_LETTERS = 6; // KTNE: każda kolumna ma 6 liter
+const MAX_COL_LETTERS = 6;
 
 function uniquePreserveOrder(chars: string[]) {
   const out: string[] = [];
@@ -19,26 +16,31 @@ function uniquePreserveOrder(chars: string[]) {
 
 export default function Password() {
   const t = useAppStore((s) => s.t);
-  const words: string[] = t.passwordWords; // lista KTNE (5-literowe)
 
-  const helpText: string = useAppStore((s) => s.t.passwordHelpText);
+  // Bezpieczne pobieranie danych z pliku językowego (żeby TS i runtime się nie wywalały)
+  const words: string[] = Array.isArray(t?.passwordWords)
+    ? t.passwordWords
+    : [];
+  const helpText: string =
+    typeof t?.passwordHelpText === "string" ? t.passwordHelpText : "";
+
+  const hasLanguageData = words.length > 0;
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // INPUTY są źródłem prawdy: każdy string = zbiór dozwolonych liter w kolumnie
   const [columnInputs, setColumnInputs] = useState<string[]>(
     Array.from({ length: WORD_LENGTH }, () => "")
   );
 
   useEffect(() => {
+    if (!hasLanguageData) return;
     inputRefs.current[0]?.focus();
-  }, []);
+  }, [hasLanguageData]);
 
   const reset = () => {
     setColumnInputs(Array.from({ length: WORD_LENGTH }, () => ""));
   };
 
-  // jeśli lista słów się zmienia, czyścimy (jak u Ciebie)
   useEffect(() => {
     const id = setTimeout(() => reset(), 0);
     return () => clearTimeout(id);
@@ -49,14 +51,9 @@ export default function Password() {
     e: React.KeyboardEvent<HTMLElement>,
     colIdx: number
   ) => {
-    // TAB przełącza fokus: 1 w prawo, a na końcu wraca do pierwszego
     if (e.key !== "Tab") return;
-
     e.preventDefault();
-
-    // Opcjonalnie: Shift+Tab cofa o 1 (jak standardowa nawigacja)
     const dir = e.shiftKey ? -1 : 1;
-
     const nextIdx = (colIdx + dir + WORD_LENGTH) % WORD_LENGTH;
     inputRefs.current[nextIdx]?.focus();
   };
@@ -66,13 +63,12 @@ export default function Password() {
       .toLowerCase()
       .split("")
       .filter((ch) => ch >= "a" && ch <= "z")
-      .filter((ch) => allowed.has(ch)); // tylko litery z tej kolumny
+      .filter((ch) => allowed.has(ch));
 
     const unique = uniquePreserveOrder(letters).slice(0, MAX_COL_LETTERS);
     return unique.join("");
   }
 
-  // Litery dostępne w każdej kolumnie (do wyświetlenia przycisków)
   const lettersByColumn = useMemo(() => {
     const result: string[][] = Array.from({ length: WORD_LENGTH }, () => []);
     for (const w of words) {
@@ -85,12 +81,10 @@ export default function Password() {
     return result;
   }, [words]);
 
-  // Z inputów robimy Sety (do szybkich sprawdzeń i kolorowania)
   const allowedSets = useMemo(() => {
     return columnInputs.map((s) => new Set(s.split("")));
   }, [columnInputs]);
 
-  // KTNE filtrowanie: pusta kolumna = brak ograniczenia
   const filteredWords = useMemo(() => {
     return words.filter((word) => {
       for (let i = 0; i < WORD_LENGTH; i++) {
@@ -102,7 +96,6 @@ export default function Password() {
     });
   }, [words, allowedSets]);
 
-  // Litery, które nadal występują w pasujących słowach (do podpowiedzi/kolorów)
   const activeLettersByColumn = useMemo(() => {
     const result: Set<string>[] = Array.from(
       { length: WORD_LENGTH },
@@ -115,7 +108,7 @@ export default function Password() {
   }, [filteredWords]);
 
   const handleColumnInputChange = (colIdx: number, raw: string) => {
-    const allowed = new Set(lettersByColumn[colIdx]); // litery dostępne w tej kolumnie
+    const allowed = new Set(lettersByColumn[colIdx]);
     const normalized = parseKTNEColumnInputWithAllowed(raw, allowed);
 
     setColumnInputs((prev) => {
@@ -125,7 +118,6 @@ export default function Password() {
     });
   };
 
-  // Klik w literę: dodaj/usuń ją w danym input stringu (a więc i w zbiorze)
   const toggleLetterInColumn = (colIdx: number, letter: string) => {
     setColumnInputs((prev) => {
       const next = [...prev];
@@ -134,16 +126,12 @@ export default function Password() {
 
       if (set.has(letter)) set.delete(letter);
       else {
-        if (set.size >= MAX_COL_LETTERS) {
-          return prev;
-        }
+        if (set.size >= MAX_COL_LETTERS) return prev;
         set.add(letter);
       }
 
-      // Zachowujemy stabilny porządek: zgodnie z lettersByColumn (alfabetycznie w tej implementacji)
       const order = lettersByColumn[colIdx];
       const ordered = order.filter((ch) => set.has(ch));
-
       for (const ch of set) if (!ordered.includes(ch)) ordered.push(ch);
 
       next[colIdx] = ordered.join("");
@@ -151,7 +139,6 @@ export default function Password() {
     });
   };
 
-  // Styl blokujący zaznaczanie
   const noSelectSx = {
     userSelect: "none",
     WebkitUserSelect: "none",
@@ -163,81 +150,19 @@ export default function Password() {
     e.preventDefault();
   };
 
+  // Jeśli nie ma danych w pliku językowym, nie renderujemy logiki modułu (żeby nic nie wybuchało)
+  if (!hasLanguageData) {
+    return (
+      <Box sx={noSelectSx}>
+        <ModuleHeader title="Password" onReset={reset} helpText={helpText} />
+        <Typography variant="body1">No data in this language file.</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={noSelectSx}>
-      <Box
-        sx={{
-          ...noSelectSx,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-          mb: 3,
-          width: "100%",
-        }}
-        onMouseDown={preventMouseDownSelect}
-      >
-        {/* Lewa strona */}
-        <Box
-          sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 0 }}
-        >
-          <Button
-            variant="contained"
-            color="error"
-            onClick={reset}
-            sx={noSelectSx}
-          >
-            Reset
-          </Button>
-
-          <Typography variant="h5" sx={{ ...noSelectSx, whiteSpace: "nowrap" }}>
-            Password
-          </Typography>
-
-          <Typography
-            variant="body2"
-            sx={{
-              opacity: 0.7,
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-            title="Wpisz litery widoczne w kolumnie (max 6). Pusta kolumna = brak ograniczenia."
-          >
-            Wpisz litery widoczne w kolumnie (max 6). Pusta kolumna = brak
-            ograniczenia.
-          </Typography>
-        </Box>
-
-        {/* Prawa strona (ikonka) */}
-        <Box sx={{ flexShrink: 0 }} onMouseDown={preventMouseDownSelect}>
-          <Tooltip
-            arrow
-            placement="bottom-end"
-            enterDelay={150}
-            title={
-              <Box
-                sx={{
-                  maxWidth: 520,
-                  whiteSpace: "pre-wrap",
-                  fontSize: 13,
-                  lineHeight: 1.4,
-                }}
-              >
-                {helpText}
-              </Box>
-            }
-          >
-            <IconButton
-              size="small"
-              aria-label="Jak używać modułu Password"
-              onMouseDown={preventMouseDownSelect}
-            >
-              <HelpOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
+      <ModuleHeader title="Password" onReset={reset} helpText={helpText} />
 
       <Box
         sx={{

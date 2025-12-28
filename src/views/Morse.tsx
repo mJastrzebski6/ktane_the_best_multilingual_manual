@@ -7,9 +7,7 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 
 import { useAppStore } from "../store/AppStore";
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import ModuleHeader from "../components/ModuleHeader";
 
 // Extended Morse Alphabet — Polish + International
 const MORSE_MAP: Record<string, string> = {
@@ -57,8 +55,9 @@ type Strength = "prefix" | "cyclic" | "none";
 export default function Morse() {
   const langFile = useAppStore((s) => s.t);
   const morseWords = (langFile.morseWords ?? {}) as Record<string, number>;
-
   const helpText: string = useAppStore((s) => s.t.morseHelpText);
+
+  const hasMorseData = Object.keys(morseWords).length > 0;
 
   const [pattern, setPattern] = React.useState("");
 
@@ -80,7 +79,7 @@ export default function Morse() {
           code,
           freq,
           strength: "prefix" as Strength,
-          matchSlice: null,
+          matchSlice: null as [number, number] | null,
         };
 
       if (code.startsWith(pattern))
@@ -89,7 +88,7 @@ export default function Morse() {
           code,
           freq,
           strength: "prefix" as Strength,
-          matchSlice: [0, pattern.length],
+          matchSlice: [0, pattern.length] as [number, number],
         };
 
       const doubled = code + code;
@@ -100,7 +99,7 @@ export default function Morse() {
           code,
           freq,
           strength: "cyclic" as Strength,
-          matchSlice: [idx, idx + pattern.length],
+          matchSlice: [idx, idx + pattern.length] as [number, number],
         };
 
       return {
@@ -108,7 +107,7 @@ export default function Morse() {
         code,
         freq,
         strength: "none" as Strength,
-        matchSlice: null,
+        matchSlice: null as [number, number] | null,
       };
     });
   }, [pattern, morseWords]);
@@ -127,41 +126,7 @@ export default function Morse() {
 
   return (
     <Box sx={{ userSelect: "none" }}>
-      {/* Header */}
-      <Box
-        sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
-      >
-        <Button variant="contained" color="error" onClick={reset}>
-          Reset
-        </Button>
-
-        <Typography variant="h5">Morse</Typography>
-
-        {/* Ikonka zawsze na końcu */}
-        <Box sx={{ ml: "auto", flexShrink: 0 }}>
-          <Tooltip
-            arrow
-            placement="bottom-end"
-            enterDelay={150}
-            title={
-              <Box
-                sx={{
-                  maxWidth: 520,
-                  whiteSpace: "pre-wrap",
-                  fontSize: 13,
-                  lineHeight: 1.4,
-                }}
-              >
-                {helpText}
-              </Box>
-            }
-          >
-            <IconButton size="small" aria-label="Jak używać modułu Morse">
-              <HelpOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
+      <ModuleHeader title="Morse" onReset={reset} helpText={helpText} />
 
       <Divider sx={{ my: 2 }} />
 
@@ -196,6 +161,20 @@ export default function Morse() {
 
       <Divider sx={{ my: 2 }} />
 
+      {!hasMorseData && (
+        <Typography
+          variant="body1"
+          sx={{
+            textAlign: "center",
+            color: "text.secondary",
+            mt: 4,
+            fontStyle: "italic",
+          }}
+        >
+          No data in this language file.
+        </Typography>
+      )}
+
       {/* Word Grid */}
       <Box
         sx={{
@@ -215,7 +194,6 @@ export default function Morse() {
             const [start, end] = matchSlice;
             const len = code.length;
 
-            // Normal prefix highlight
             if (end <= len) {
               content = (
                 <>
@@ -227,7 +205,6 @@ export default function Morse() {
                 </>
               );
             } else {
-              // Cyclic wrap highlight
               const firstEnd = len;
               const wrapLen = end - len;
 
@@ -251,7 +228,9 @@ export default function Morse() {
               key={word}
               sx={{
                 opacity,
-                border: `2px solid ${isPrefix ? "#4caf50" : isCyclic ? "#0088cc" : "#ccc"}`,
+                border: `2px solid ${
+                  isPrefix ? "#4caf50" : isCyclic ? "#0088cc" : "#ccc"
+                }`,
                 p: 0.5,
                 borderRadius: 1,
                 background: isPrefix
