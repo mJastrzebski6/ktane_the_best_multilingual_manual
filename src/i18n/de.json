@@ -1,4 +1,10 @@
 {
   "language": "de",
-  "code": "558"
+  "code": "558",
+  "bigButtonLabels": {
+    "ABORT": "Abort",
+    "DETONATE": "Detonate",
+    "HOLD": "Hold",
+    "PRESS": "Press"
+  }
 }

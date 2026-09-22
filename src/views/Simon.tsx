@@ -12,6 +12,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import { useAppStore } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
+import MissingFactsBanner from "../components/MissingFactsBanner";
 
 type SimonColor = "red" | "blue" | "green" | "yellow";
 type Strikes = 0 | 1 | 2;
@@ -60,6 +61,7 @@ export default function Simon() {
   const [flashes, setFlashes] = React.useState<SimonColor[]>([]);
   const [presses, setPresses] = React.useState<SimonColor[]>([]);
 
+  const hasVowelKnown = serialHasVowel !== null;
   const activeTableKey: "hasVowel" | "noVowel" = serialHasVowel
     ? "hasVowel"
     : "noVowel";
@@ -83,6 +85,7 @@ export default function Simon() {
   }, [serialHasVowel, strikes]);
 
   const onColorClick = (flashColor: SimonColor) => {
+    if (!hasVowelKnown) return;
     setFlashes((prev) => {
       const next = [...prev, flashColor];
       setPresses(recomputePresses(next, strikes, activeTableKey));
@@ -133,9 +136,11 @@ export default function Simon() {
         title="Simon Says"
         onReset={resetModule}
         requiredData={[
-          `NUMER SERYJNY - ${serialHasVowel ? "z samogłoską" : "bez samogłoski"}`,
+          `NUMER SERYJNY - ${serialHasVowel === null ? "?" : serialHasVowel ? "z samogłoską" : "bez samogłoski"}`,
         ]}
       />
+
+      <MissingFactsBanner needed={["serialHasVowel"]} />
 
       <Divider sx={{ mb: 2 }} />
 
@@ -160,6 +165,7 @@ export default function Simon() {
             key={c}
             variant="contained"
             onClick={() => onColorClick(c)}
+            disabled={!hasVowelKnown}
             sx={{
               bgcolor: COLOR_SX[c].bgcolor,
               color: COLOR_SX[c].color,
@@ -186,7 +192,13 @@ export default function Simon() {
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Do kliknięcia (przeliczone wg tabeli)
           </Typography>
-          {renderSeq(presses)}
+          {!hasVowelKnown ? (
+            <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
+              NAJPIERW WPISZ POWYŻEJ CZY NUMER MA SAMOGŁOSKĘ — bez tego tabela jest nieznana.
+            </Typography>
+          ) : (
+            renderSeq(presses)
+          )}
         </Box>
       </Box>
     </Box>

@@ -157,13 +157,13 @@ export default function Keypad() {
         </Typography>
       )}
 
-      {/* GÓRA: zawsze wszystkie symbole; niepasujące są wyszarzone */}
+      {/* GÓRA: zawsze wszystkie symbole w gridzie 9×3; niepasujące są wyszarzone */}
       <Box
         sx={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "repeat(9, minmax(0, 1fr))",
           gap: 1,
-          flexWrap: "wrap",
-          alignItems: "center",
+          alignItems: "stretch",
           mb: 3,
         }}
       >
@@ -181,6 +181,8 @@ export default function Keypad() {
               disabled={isDisabled}
               sx={{
                 p: 0.5,
+                width: "100%",
+                aspectRatio: "1 / 1",
                 borderRadius: 1,
                 border: "2px solid",
                 borderColor: isSelected ? "success.main" : "divider",
@@ -214,8 +216,8 @@ export default function Keypad() {
                 alt={id}
                 draggable={false}
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: "85%",
+                  height: "85%",
                   objectFit: "contain",
                   display: "block",
                   filter: isDisabled ? "grayscale(100%)" : "none",

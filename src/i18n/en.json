@@ -57,5 +57,11 @@
     "sting": 592,
     "vector": 595,
     "beats": 600
+  },
+  "bigButtonLabels": {
+    "ABORT": "ABORT",
+    "DETONATE": "DETONATE",
+    "HOLD": "HOLD",
+    "PRESS": "PRESS"
   }
 }

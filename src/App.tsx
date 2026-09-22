@@ -10,7 +10,6 @@ export default function App() {
   const activeView = useAppStore((s) => s.activeView);
 
   useEffect(() => {
-    // start preloading ASAP
     void preloadImages(Object.values(KeypadImageById));
   }, []);
 

@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Box, Button } from "@mui/material";
-import { useAppStore } from "../store/AppStore";
+import { Alert, AlertTitle, Box, Button, Typography } from "@mui/material";
+import { FACT_LABELS, useAppStore, type FactKey } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
+import MissingFactsBanner from "../components/MissingFactsBanner";
 
 type WireColor = "white" | "red" | "blue" | "redBlue";
 
@@ -39,11 +40,11 @@ function getTableColumnIndex(ledOn: boolean, star: boolean): 0 | 1 | 2 | 3 {
 function shouldCut(
   wire: WireState,
   bombFacts: {
-    hasParallelPort: boolean;
-    batteryCount: number;
-    serialLastDigitEven: boolean;
+    hasParallelPort: boolean | null;
+    batteryCount: number | null;
+    serialLastDigitEven: boolean | null;
   }
-): boolean {
+): boolean | null {
   const col = getTableColumnIndex(wire.ledOn, wire.star);
   const decision = TABLE[wire.color][col];
 
@@ -53,12 +54,25 @@ function shouldCut(
     case "DONT":
       return false;
     case "B":
+      if (bombFacts.batteryCount === null) return null;
       return bombFacts.batteryCount >= 2;
     case "P":
+      if (bombFacts.hasParallelPort === null) return null;
       return bombFacts.hasParallelPort;
     case "S":
+      if (bombFacts.serialLastDigitEven === null) return null;
       return bombFacts.serialLastDigitEven;
   }
+}
+
+/** Którego faktu wymaga dany kabel (jeśli w ogóle)? */
+function neededFactFor(wire: WireState): FactKey | null {
+  const col = getTableColumnIndex(wire.ledOn, wire.star);
+  const decision = TABLE[wire.color][col];
+  if (decision === "B") return "batteryCount";
+  if (decision === "P") return "hasParallelPort";
+  if (decision === "S") return "serialLastDigitEven";
+  return null;
 }
 
 function colorButtonSx(color: WireColor) {
@@ -103,6 +117,7 @@ export default function WireVertical() {
   const serialLastDigitEven = useAppStore(
     (s) => s.bombFacts.serialLastDigitEven
   );
+  const bombFactsFull = useAppStore((s) => s.bombFacts);
 
   const bombFacts = React.useMemo(
     () => ({ hasParallelPort, batteryCount, serialLastDigitEven }),
@@ -110,6 +125,22 @@ export default function WireVertical() {
   );
 
   const [wires, setWires] = React.useState<WireState[]>(createDefaultWires);
+
+  // Fakty realnie potrzebne przez AKTUALNIE ustawione kable (a nie "wszystkie z manuala")
+  const neededFacts = React.useMemo(() => {
+    const set = new Set<FactKey>();
+    for (const w of wires) {
+      const f = neededFactFor(w);
+      if (f) set.add(f);
+    }
+    return [...set];
+  }, [wires]);
+
+  const missingFacts = neededFacts.filter((k) => bombFactsFull[k] === null);
+  const undecidedCount = wires.filter((w) => shouldCut(w, bombFacts) === null).length;
+
+  const fmtTri = (v: boolean | null, t: string, f: string) =>
+    v === null ? "?" : v ? t : f;
 
   const resetWires = React.useCallback(() => {
     setWires(createDefaultWires());
@@ -132,12 +163,13 @@ export default function WireVertical() {
         title="Wires VENN"
         onReset={resetWires}
         requiredData={[
-          "BATERIE",
-          "PORT RÓWNOLEGŁY",
-          "PARZYSTOŚĆ NUMERU SERYJNEGO",
+          `BATERIE: ${batteryCount === null ? "?" : batteryCount === 3 ? "3+" : String(batteryCount)}`,
+          `PORT: ${fmtTri(hasParallelPort, "jest", "brak")}`,
+          `SERIAL: ${fmtTri(serialLastDigitEven, "parzysty", "nieparzysty")}`,
         ]}
       />
 
+      <MissingFactsBanner needed={neededFacts} />
       <Box
         sx={{
           display: "grid",
@@ -297,12 +329,28 @@ export default function WireVertical() {
                 fontSize: 26,
                 userSelect: "none",
               }}
+              title={cut === null ? "Wpisz brakujący fakt powyżej" : cut ? "Przetnij" : "Zostaw"}
             >
-              {cut ? "✅" : "❌"}
+              {cut === null ? "❔" : cut ? "✅" : "❌"}
             </Box>
           );
         })}
       </Box>
+
+      {/* Blokada wyniku jak w Simonie — dużymi literami, analogicznie */}
+      {missingFacts.length > 0 && (
+        <Alert severity="warning" sx={{ mt: 2, border: "3px solid #ed6c02" }}>
+          <AlertTitle sx={{ fontWeight: 900, fontSize: 18 }}>
+            NAJPIERW WPISZ POWYŻEJ: {missingFacts.map((k) => FACT_LABELS[k]).join(" • ")}
+          </AlertTitle>
+          <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
+            Bez tego wynik jest nieznany — {undecidedCount} {undecidedCount === 1 ? "kabel ma" : "kabli ma"} znak ❔ zamiast ✅/❌.
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            Uzupełnij w banerze powyżej albo w lewym panelu — reszta kabli liczy się normalnie.
+          </Typography>
+        </Alert>
+      )}
     </>
   );
 }

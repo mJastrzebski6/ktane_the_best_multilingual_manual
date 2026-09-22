@@ -60,9 +60,10 @@ export default function Password() {
 
   function parseKTNEColumnInputWithAllowed(raw: string, allowed: Set<string>) {
     const letters = raw
+      .normalize("NFC")
       .toLowerCase()
       .split("")
-      .filter((ch) => ch >= "a" && ch <= "z")
+      .filter((ch) => /\p{L}/u.test(ch))
       .filter((ch) => allowed.has(ch));
 
     const unique = uniquePreserveOrder(letters).slice(0, MAX_COL_LETTERS);

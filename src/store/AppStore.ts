@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 
-// 👇 automatycznie ładuje wszystkie jsony z i18n
 const languageModules = import.meta.glob("../i18n/*.json", {
   eager: true,
 });
@@ -43,23 +42,41 @@ export type ViewId =
   | "whos_on_first";
 
 /**
- * Liczba baterii z saturacją:
- * 0, 1, 2, 3 (gdzie 3 oznacza "3 lub więcej")
+ * Trójstanowy fakt: true / false / null ("?" = jeszcze nie wpisano).
  */
-export type BatteryCount = 0 | 1 | 2 | 3;
+export type TriBool = boolean | null;
+
+/**
+ * Liczba baterii z saturacją:
+ * 0, 1, 2, 3 (gdzie 3 oznacza "3 lub więcej"), null = "?" (nie wpisano).
+ */
+export type BatteryCount = 0 | 1 | 2 | 3 | null;
 
 /**
  * Resetowalne, "bomb facts" / cechy, które użytkownik może ustawiać globalnie.
+ * null = "?" — user jeszcze nie wpisał.
  */
-type ResettableBombFacts = {
-  serialLastDigitEven: boolean;
-  serialHasVowel: boolean;
-  indicatorCAR: boolean;
-  indicatorFRK: boolean;
-  hasParallelPort: boolean;
+export type ResettableBombFacts = {
+  serialLastDigitEven: TriBool;
+  serialHasVowel: TriBool;
+  indicatorCAR: TriBool;
+  indicatorFRK: TriBool;
+  hasParallelPort: TriBool;
 
-  // baterie jako liczba (0/1/2/3+)
+  // baterie jako liczba (0/1/2/3+) lub null ("?")
   batteryCount: BatteryCount;
+};
+
+export type FactKey = keyof ResettableBombFacts;
+
+/** Duże, czytelne etykiety faktów do banerów "UZUPEŁNIJ". */
+export const FACT_LABELS: Record<FactKey, string> = {
+  serialLastDigitEven: "PARZYSTOŚĆ OSTATNIEJ CYFRY NUMERU SERYJNEGO",
+  serialHasVowel: "SAMOGŁOSKA W NUMERZE SERYJNYM",
+  indicatorCAR: "WSKAŹNIK CAR (czy się świeci)",
+  indicatorFRK: "WSKAŹNIK FRK (czy się świeci)",
+  hasParallelPort: "PORT RÓWNOLEGŁY",
+  batteryCount: "LICZBA BATERII",
 };
 
 type AppState = {
@@ -86,13 +103,13 @@ type AppState = {
 const defaultLang = availableLangs[0]?.key ?? "en";
 
 const defaultBombFacts: ResettableBombFacts = {
-  serialLastDigitEven: false,
-  serialHasVowel: false,
-  indicatorCAR: false,
-  indicatorFRK: false,
-  hasParallelPort: false,
+  serialLastDigitEven: null,
+  serialHasVowel: null,
+  indicatorCAR: null,
+  indicatorFRK: null,
+  hasParallelPort: null,
 
-  batteryCount: 0,
+  batteryCount: null,
 };
 
 export const useAppStore = create<AppState>((set) => ({

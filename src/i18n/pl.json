@@ -625,5 +625,11 @@
     "indyk": 592,
     "pojazd": 595,
     "harfa": 600
+  },
+  "bigButtonLabels": {
+    "ABORT": "PRZERWIJ",
+    "DETONATE": "DETONUJ",
+    "HOLD": "PRZYTRZYMAJ",
+    "PRESS": "PRZYCIŚNIJ"
   }
 }

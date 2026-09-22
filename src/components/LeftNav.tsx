@@ -2,14 +2,11 @@ import {
   Box,
   Button,
   Divider,
-  FormControlLabel,
-  FormGroup,
   MenuItem,
   Select,
-  Switch,
   Typography,
 } from "@mui/material";
-import { useAppStore, type ViewId, type BatteryCount } from "../store/AppStore";
+import { useAppStore, type ViewId, type BatteryCount, type TriBool } from "../store/AppStore";
 import { useEffect } from "react";
 
 import { readStoredLang, storeLang } from "../utils/Storage";
@@ -72,11 +69,11 @@ function BorderedInlineChoice(props: {
         cursor: "pointer",
         border: "1px solid rgba(0,0,0,0.18)",
         borderRadius: 1,
-        px: 0.9,
-        py: 0.45,
+        px: 0.7,
+        py: 0.3,
         display: "flex",
         alignItems: "center",
-        gap: 0.75,
+        gap: 0.5,
         minWidth: 0,
         userSelect: "none",
         backgroundColor: selected ? "rgba(0,0,0,0.10)" : "rgba(0,0,0,0.02)",
@@ -93,9 +90,31 @@ function BorderedInlineChoice(props: {
           flexShrink: 0,
         }}
       />
-      <Typography variant="caption" sx={{ whiteSpace: "nowrap" }}>
+      <Typography variant="caption" sx={{ whiteSpace: "nowrap", fontSize: 11 }}>
         {label}
       </Typography>
+    </Box>
+  );
+}
+
+function TriStateRow(props: {
+  label: string;
+  value: TriBool;
+  onChange: (v: TriBool) => void;
+  trueLabel?: string;
+  falseLabel?: string;
+}) {
+  const { label, value, onChange, trueLabel = "TAK", falseLabel = "NIE" } = props;
+  return (
+    <Box sx={{ mb: 0.6 }}>
+      <Typography variant="caption" sx={{ display: "block", mb: 0.25, lineHeight: 1.2, fontSize: 11 }}>
+        {label}
+      </Typography>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+        <BorderedInlineChoice selected={value === null} onSelect={() => onChange(null)} label="?" />
+        <BorderedInlineChoice selected={value === true} onSelect={() => onChange(true)} label={trueLabel} />
+        <BorderedInlineChoice selected={value === false} onSelect={() => onChange(false)} label={falseLabel} />
+      </Box>
     </Box>
   );
 }
@@ -180,9 +199,11 @@ export function LeftNav() {
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gridTemplateRows: "repeat(4, minmax(0, 1fr))",
-          gap: 1,
+          gap: 0.75,
           p: 1,
           overflow: "hidden",
+          justifyItems: "center",
+          alignItems: "center",
         }}
       >
         {items.map((item) => (
@@ -193,7 +214,10 @@ export function LeftNav() {
               cursor: "pointer",
               borderRadius: 1,
               border: "1px solid rgba(0,0,0,0.10)",
-              p: 0.5,
+              p: "2px",
+              aspectRatio: "1 / 1",
+              height: "100%",
+              maxWidth: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -240,83 +264,63 @@ export function LeftNav() {
           </Button>
         </Box>
 
-        <FormGroup>
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bombFacts.serialLastDigitEven}
-                onChange={(e) =>
-                  setBombFacts({ serialLastDigitEven: e.target.checked })
-                }
-              />
-            }
+        <Box sx={{ overflowY: "auto" }}>
+          <TriStateRow
             label="Ostatnia cyfra seryjnego parzysta"
+            value={bombFacts.serialLastDigitEven}
+            onChange={(v) => setBombFacts({ serialLastDigitEven: v })}
+            trueLabel="PARZYSTA"
+            falseLabel="NIEPARZ."
           />
 
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bombFacts.serialHasVowel}
-                onChange={(e) =>
-                  setBombFacts({ serialHasVowel: e.target.checked })
-                }
-              />
-            }
+          <TriStateRow
             label="Seryjny ma samogłoskę"
+            value={bombFacts.serialHasVowel}
+            onChange={(v) => setBombFacts({ serialHasVowel: v })}
+            trueLabel="TAK"
+            falseLabel="NIE"
           />
 
           <Divider sx={{ my: 0.5 }} />
 
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bombFacts.indicatorCAR}
-                onChange={(e) =>
-                  setBombFacts({ indicatorCAR: e.target.checked })
-                }
-              />
-            }
+          <TriStateRow
             label="Wskaźnik CAR się świeci"
+            value={bombFacts.indicatorCAR}
+            onChange={(v) => setBombFacts({ indicatorCAR: v })}
+            trueLabel="ŚWIECI"
+            falseLabel="NIE"
           />
 
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bombFacts.indicatorFRK}
-                onChange={(e) =>
-                  setBombFacts({ indicatorFRK: e.target.checked })
-                }
-              />
-            }
+          <TriStateRow
             label="Wskaźnik FRK się świeci"
+            value={bombFacts.indicatorFRK}
+            onChange={(v) => setBombFacts({ indicatorFRK: v })}
+            trueLabel="ŚWIECI"
+            falseLabel="NIE"
           />
 
           <Divider sx={{ my: 0.5 }} />
 
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={bombFacts.hasParallelPort}
-                onChange={(e) =>
-                  setBombFacts({ hasParallelPort: e.target.checked })
-                }
-              />
-            }
+          <TriStateRow
             label="Ma port równoległy"
+            value={bombFacts.hasParallelPort}
+            onChange={(v) => setBombFacts({ hasParallelPort: v })}
+            trueLabel="JEST"
+            falseLabel="BRAK"
           />
 
           <Divider sx={{ my: 0.5 }} />
 
-          <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
-            Baterie (0 / 1 / 2 / 3+)
+          <Typography variant="caption" sx={{ display: "block", mb: 0.5, fontSize: 11 }}>
+            Baterie (? / 0 / 1 / 2 / 3+)
           </Typography>
 
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+            <BorderedInlineChoice
+              selected={batteryCount === null}
+              onSelect={() => setCount(null)}
+              label="?"
+            />
             <BorderedInlineChoice
               selected={batteryCount === 0}
               onSelect={() => setCount(0)}
@@ -338,7 +342,7 @@ export function LeftNav() {
               label="3+"
             />
           </Box>
-        </FormGroup>
+        </Box>
       </Box>
     </Box>
   );
