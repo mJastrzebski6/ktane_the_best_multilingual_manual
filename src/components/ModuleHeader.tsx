@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Box, Button, Tooltip, IconButton, Typography } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { useAppStore } from "../store/AppStore";
 
 type ModuleHeaderProps = {
   title: string;
@@ -26,9 +27,13 @@ export default function ModuleHeader({
     e.preventDefault();
   };
 
+  const uiCommon = useAppStore((s) => s.t?.ui?.common) as
+    | { reset?: string; requiredPrefix?: string; infoAria?: string }
+    | undefined;
+
   const requiredText =
     requiredData && requiredData.length > 0
-      ? `POTRZEBNE: ${requiredData.join(", ")}`
+      ? `${uiCommon?.requiredPrefix ?? "POTRZEBNE"}: ${requiredData.join(", ")}`
       : null;
 
   return (
@@ -60,7 +65,7 @@ export default function ModuleHeader({
             onClick={onReset}
             sx={{ height: 36 }}
           >
-            Reset
+            {uiCommon?.reset ?? "Reset"}
           </Button>
         )}
 
@@ -111,7 +116,7 @@ export default function ModuleHeader({
           >
             <IconButton
               size="small"
-              aria-label={`Informacje: ${title}`}
+              aria-label={`${uiCommon?.infoAria ?? "Informacje"}: ${title}`}
               sx={{ height: 36, width: 36 }}
             >
               <HelpOutlineIcon fontSize="small" />

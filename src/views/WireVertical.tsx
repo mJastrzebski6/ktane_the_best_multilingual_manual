@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Alert, AlertTitle, Box, Button, Typography } from "@mui/material";
-import { FACT_LABELS, useAppStore, type FactKey } from "../store/AppStore";
+import { fmt, useAppStore, type FactKey } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
 import MissingFactsBanner from "../components/MissingFactsBanner";
 
@@ -75,6 +75,15 @@ function neededFactFor(wire: WireState): FactKey | null {
   return null;
 }
 
+const FACT_TO_LABEL_KEY: Record<FactKey, string> = {
+  serialLastDigitEven: "labelSerialEven",
+  serialHasVowel: "labelVowel",
+  indicatorCAR: "labelCar",
+  indicatorFRK: "labelFrk",
+  hasParallelPort: "labelParallel",
+  batteryCount: "labelBatteries",
+};
+
 function colorButtonSx(color: WireColor) {
   const base = {
     minWidth: 44,
@@ -118,6 +127,8 @@ export default function WireVertical() {
     (s) => s.bombFacts.serialLastDigitEven
   );
   const bombFactsFull = useAppStore((s) => s.bombFacts);
+  const s = (useAppStore((s) => s.t?.ui?.venn) ?? {}) as Record<string, string>;
+  const uiFacts = (useAppStore((s) => s.t?.ui?.facts) ?? {}) as Record<string, string>;
 
   const bombFacts = React.useMemo(
     () => ({ hasParallelPort, batteryCount, serialLastDigitEven }),
@@ -138,9 +149,12 @@ export default function WireVertical() {
 
   const missingFacts = neededFacts.filter((k) => bombFactsFull[k] === null);
   const undecidedCount = wires.filter((w) => shouldCut(w, bombFacts) === null).length;
+  const factLabelOf = (k: FactKey) => uiFacts[FACT_TO_LABEL_KEY[k]] ?? k;
 
   const fmtTri = (v: boolean | null, t: string, f: string) =>
     v === null ? "?" : v ? t : f;
+
+  const battWord = batteryCount === null ? "?" : batteryCount === 3 ? (s.valMany ?? "3+") : String(batteryCount);
 
   const resetWires = React.useCallback(() => {
     setWires(createDefaultWires());
@@ -160,13 +174,14 @@ export default function WireVertical() {
   return (
     <>
       <ModuleHeader
-        title="Wires VENN"
+        title={s.title ?? "VENN"}
         onReset={resetWires}
         requiredData={[
-          `BATERIE: ${batteryCount === null ? "?" : batteryCount === 3 ? "3+" : String(batteryCount)}`,
-          `PORT: ${fmtTri(hasParallelPort, "jest", "brak")}`,
-          `SERIAL: ${fmtTri(serialLastDigitEven, "parzysty", "nieparzysty")}`,
+          `${s.reqBatteries ?? ""}: ${battWord}`,
+          `${s.reqPort ?? ""}: ${fmtTri(hasParallelPort, s.valPresent ?? "", s.valAbsent ?? "")}`,
+          `${s.reqSerial ?? ""}: ${fmtTri(serialLastDigitEven, s.valEven ?? "", s.valOdd ?? "")}`,
         ]}
+        helpText={s.help}
       />
 
       <MissingFactsBanner needed={neededFacts} />
@@ -329,7 +344,7 @@ export default function WireVertical() {
                 fontSize: 26,
                 userSelect: "none",
               }}
-              title={cut === null ? "Wpisz brakujący fakt powyżej" : cut ? "Przetnij" : "Zostaw"}
+              title={cut === null ? (s.tipMissing ?? "") : cut ? (s.tipCut ?? "") : (s.tipLeave ?? "")}
             >
               {cut === null ? "❔" : cut ? "✅" : "❌"}
             </Box>
@@ -341,13 +356,19 @@ export default function WireVertical() {
       {missingFacts.length > 0 && (
         <Alert severity="warning" sx={{ mt: 2, border: "3px solid #ed6c02" }}>
           <AlertTitle sx={{ fontWeight: 900, fontSize: 18 }}>
-            NAJPIERW WPISZ POWYŻEJ: {missingFacts.map((k) => FACT_LABELS[k]).join(" • ")}
+            {fmt(s.blockedTitle ?? "", {
+              list: missingFacts.map((k) => factLabelOf(k)).join(" • "),
+            })}
           </AlertTitle>
           <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
-            Bez tego wynik jest nieznany — {undecidedCount} {undecidedCount === 1 ? "kabel ma" : "kabli ma"} znak ❔ zamiast ✅/❌.
+            {fmt(s.blockedDesc ?? "", {
+              n: undecidedCount,
+              word: undecidedCount === 1 ? (s.blockedCableOne ?? "") : (s.blockedCableMany ?? ""),
+              tail: s.blockedTail ?? "",
+            })}
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            Uzupełnij w banerze powyżej albo w lewym panelu — reszta kabli liczy się normalnie.
+            {s.blockedNote ?? ""}
           </Typography>
         </Alert>
       )}

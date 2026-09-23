@@ -1,30 +1,43 @@
 import { Alert, AlertTitle, Box, Button, Typography } from "@mui/material";
-import { FACT_LABELS, useAppStore, type FactKey } from "../store/AppStore";
+import { useAppStore, type FactKey } from "../store/AppStore";
+
+type UiNav = {
+  optUnknown?: string;
+  optEven?: string;
+  optOdd?: string;
+  optYes?: string;
+  optNo?: string;
+  optLit?: string;
+  optUnlit?: string;
+  optPresent?: string;
+  optAbsent?: string;
+};
 
 function BoolQuickSet({ factKey }: { factKey: FactKey }) {
   const value = useAppStore((s) => s.bombFacts[factKey]);
   const setBombFacts = useAppStore((s) => s.setBombFacts);
+  const uiNav = (useAppStore((s) => s.t?.ui?.nav) ?? {}) as UiNav;
 
   // Etykiety przycisków dopasowane do faktu
   const opts: { label: string; value: boolean }[] =
     factKey === "serialLastDigitEven"
       ? [
-          { label: "PARZYSTA", value: true },
-          { label: "NIEPARZYSTA", value: false },
+          { label: uiNav.optEven ?? "PARZYSTA", value: true },
+          { label: uiNav.optOdd ?? "NIEPARZYSTA", value: false },
         ]
       : factKey === "serialHasVowel"
         ? [
-            { label: "JEST SAMOGŁOSKA", value: true },
-            { label: "BRAK SAMOGŁOSKI", value: false },
+            { label: uiNav.optYes ?? "YES", value: true },
+            { label: uiNav.optNo ?? "NO", value: false },
           ]
         : factKey === "hasParallelPort"
           ? [
-              { label: "JEST PORT", value: true },
-              { label: "BRAK PORTU", value: false },
+              { label: uiNav.optPresent ?? "PRESENT", value: true },
+              { label: uiNav.optAbsent ?? "MISSING", value: false },
             ]
           : [
-              { label: "ŚWIECI (TAK)", value: true },
-              { label: "NIE ŚWIECI", value: false },
+              { label: uiNav.optLit ?? "LIT", value: true },
+              { label: uiNav.optUnlit ?? "OFF", value: false },
             ];
 
   return (
@@ -73,6 +86,15 @@ function BatteryQuickSet() {
   );
 }
 
+const FACT_TO_LABEL_KEY: Record<FactKey, string> = {
+  serialLastDigitEven: "labelSerialEven",
+  serialHasVowel: "labelVowel",
+  indicatorCAR: "labelCar",
+  indicatorFRK: "labelFrk",
+  hasParallelPort: "labelParallel",
+  batteryCount: "labelBatteries",
+};
+
 /**
  * Duży baner "UZUPEŁNIJ" — pokazuje się TYLKO gdy moduł realnie
  * potrzebuje danego faktu, a ten jest jeszcze "?" (null).
@@ -80,23 +102,29 @@ function BatteryQuickSet() {
  */
 export default function MissingFactsBanner({ needed }: { needed: FactKey[] }) {
   const bombFacts = useAppStore((s) => s.bombFacts);
+  const uiBanner = (useAppStore((s) => s.t?.ui?.banner) ?? {}) as {
+    title?: string;
+    desc?: string;
+  };
+  const uiFacts = (useAppStore((s) => s.t?.ui?.facts) ?? {}) as Record<string, string>;
   const missing = needed.filter((k) => bombFacts[k] === null);
   if (missing.length === 0) return null;
+
+  const labelOf = (k: FactKey) => uiFacts[FACT_TO_LABEL_KEY[k]] ?? k;
 
   return (
     <Alert severity="warning" sx={{ mb: 2, border: "3px solid #ed6c02" }}>
       <AlertTitle sx={{ fontWeight: 900, fontSize: 20, letterSpacing: 0.5 }}>
-        ⚠ UZUPEŁNIJ: {missing.map((k) => FACT_LABELS[k]).join(" • ")}
+        ⚠ {uiBanner.title ?? "UZUPEŁNIJ"}: {missing.map(labelOf).join(" • ")}
       </AlertTitle>
       <Typography variant="body2" sx={{ mb: 1.5, fontWeight: 600 }}>
-        Ten moduł teraz tego potrzebuje, a w panelu jest jeszcze „?”. Kliknij
-        poniżej (zapisze się globalnie):
+        {uiBanner.desc ?? ""}
       </Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {missing.map((k) => (
           <Box key={k} sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
             <Typography variant="body2" sx={{ fontWeight: 800 }}>
-              {FACT_LABELS[k]}:
+              {labelOf(k)}:
             </Typography>
             {k === "batteryCount" ? <BatteryQuickSet /> : <BoolQuickSet factKey={k} />}
           </Box>

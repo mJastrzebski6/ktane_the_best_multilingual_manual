@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Alert, AlertTitle, Box, Button, Paper, Typography } from "@mui/material";
-import { FACT_LABELS, useAppStore, type FactKey } from "../store/AppStore";
+import { fmt, useAppStore, type FactKey } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
 import MissingFactsBanner from "../components/MissingFactsBanner";
 
@@ -51,15 +51,25 @@ type EvalResult =
  * 6. czerwony + HOLD → TAP
  * 7. inaczej → HOLD
  */
+type BtnStrings = Record<string, string>;
+
 function evaluate(
   color: BtnColor,
   label: BtnLabel,
   facts: Facts,
-  disp: Record<BtnLabel, string>
+  disp: Record<BtnLabel, string>,
+  b: BtnStrings
 ): EvalResult {
+  const hold = b.actHold ?? "";
+  const tap = b.actTap ?? "";
+  const colorWord =
+    color === "blue" ? (b.colorBlue ?? "")
+    : color === "red" ? (b.colorRed ?? "")
+    : color === "white" ? (b.colorWhite ?? "")
+    : (b.colorYellow ?? "");
   // 1. niebieski + ABORT (bez faktów)
   if (color === "blue" && label === "ABORT")
-    return { status: "hold", rule: 1, desc: `niebieski + ${disp.ABORT} → PRZYTRZYMAJ` };
+    return { status: "hold", rule: 1, desc: fmt(b.d1 ?? "", { c: colorWord, l: disp.ABORT, a: hold }) };
 
   // 2. DETONATE + >1 baterii
   if (label === "DETONATE") {
@@ -68,10 +78,10 @@ function evaluate(
         status: "need",
         needed: ["batteryCount"],
         atRule: 2,
-        reason: `napis ${disp.DETONATE} — reguła 2 sprawdza czy baterii jest > 1`,
+        reason: fmt(b.reason2 ?? "", { l: disp.DETONATE }),
       };
     if (facts.batteryCount >= 2)
-      return { status: "tap", rule: 2, desc: `${disp.DETONATE} + >1 baterii → NACIŚNIJ I PUŚĆ` };
+      return { status: "tap", rule: 2, desc: fmt(b.d2 ?? "", { l: disp.DETONATE, a: tap }) };
     // ≤1 baterii → leć dalej
   }
 
@@ -82,10 +92,10 @@ function evaluate(
         status: "need",
         needed: ["indicatorCAR"],
         atRule: 3,
-        reason: "biały guzik — reguła 3 sprawdza czy CAR się świeci",
+        reason: b.reason3 ?? "",
       };
     if (facts.indicatorCAR)
-      return { status: "hold", rule: 3, desc: "biały + świecący CAR → PRZYTRZYMAJ" };
+      return { status: "hold", rule: 3, desc: fmt(b.d3 ?? "", { c: colorWord, a: hold }) };
   }
 
   // 4. >2 baterii + FRK
@@ -100,23 +110,23 @@ function evaluate(
         status: "need",
         needed,
         atRule: 4,
-        reason: "reguła 4 sprawdza czy baterii jest > 2 i FRK się świeci",
+        reason: b.reason4 ?? "",
       };
     }
     if (facts.batteryCount === 3 && facts.indicatorFRK)
-      return { status: "tap", rule: 4, desc: ">2 baterii + świecący FRK → NACIŚNIJ I PUŚĆ" };
+      return { status: "tap", rule: 4, desc: fmt(b.d4 ?? "", { a: tap }) };
   }
 
   // 5. żółty
   if (color === "yellow")
-    return { status: "hold", rule: 5, desc: "żółty → PRZYTRZYMAJ" };
+    return { status: "hold", rule: 5, desc: fmt(b.d5 ?? "", { c: colorWord, a: hold }) };
 
   // 6. czerwony + HOLD
   if (color === "red" && label === "HOLD")
-    return { status: "tap", rule: 6, desc: `czerwony + ${disp.HOLD} → NACIŚNIJ I PUŚĆ` };
+    return { status: "tap", rule: 6, desc: fmt(b.d6 ?? "", { c: colorWord, l: disp.HOLD, a: tap }) };
 
   // 7. inaczej
-  return { status: "hold", rule: 7, desc: "żadna reguła 1–6 → PRZYTRZYMAJ" };
+  return { status: "hold", rule: 7, desc: fmt(b.d7 ?? "", { a: hold }) };
 }
 
 export default function BigButton() {
@@ -133,6 +143,8 @@ export default function BigButton() {
   const indicatorCAR = useAppStore((s) => s.bombFacts.indicatorCAR);
   const indicatorFRK = useAppStore((s) => s.bombFacts.indicatorFRK);
   const bombFactsFull = useAppStore((s) => s.bombFacts);
+  const b = (useAppStore((s) => s.t?.ui?.button) ?? {}) as BtnStrings;
+  const uiFacts = (useAppStore((s) => s.t?.ui?.facts) ?? {}) as Record<string, string>;
 
   const [color, setColor] = React.useState<BtnColor | null>(null);
   const [label, setLabel] = React.useState<BtnLabel | null>(null);
@@ -146,7 +158,7 @@ export default function BigButton() {
 
   const result: EvalResult = React.useMemo(() => {
     if (!color || !label) return { status: "needSelection" };
-    return evaluate(color, label, { batteryCount, indicatorCAR, indicatorFRK }, disp);
+    return evaluate(color, label, { batteryCount, indicatorCAR, indicatorFRK }, disp, b);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color, label, batteryCount, indicatorCAR, indicatorFRK, t]);
 
@@ -155,25 +167,37 @@ export default function BigButton() {
 
   const fmtBatt = batteryCount === null ? "?" : batteryCount === 3 ? "3+" : String(batteryCount);
   const fmtTri = (v: boolean | null, t: string, f: string) => (v === null ? "?" : v ? t : f);
+  const factLabelOf = (k: FactKey) =>
+    k === "batteryCount" ? (uiFacts.labelBatteries ?? k)
+    : k === "indicatorCAR" ? (uiFacts.labelCar ?? k)
+    : k === "indicatorFRK" ? (uiFacts.labelFrk ?? k)
+    : k === "serialLastDigitEven" ? (uiFacts.labelSerialEven ?? k)
+    : (uiFacts.labelVowel ?? k);
+
+  const colorWord = (c: BtnColor) =>
+    c === "blue" ? (b.colorBlue ?? c)
+    : c === "red" ? (b.colorRed ?? c)
+    : c === "white" ? (b.colorWhite ?? c)
+    : (b.colorYellow ?? c);
 
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Button / Wielki guzik"
+        title={b.title ?? "Button"}
         onReset={reset}
         requiredData={[
-          `BATERIE: ${fmtBatt}`,
-          `CAR: ${fmtTri(indicatorCAR, "świeci", "nie")}`,
-          `FRK: ${fmtTri(indicatorFRK, "świeci", "nie")}`,
+          `${b.reqBatt ?? ""}: ${fmtBatt}`,
+          `${b.reqCar ?? ""}: ${fmtTri(indicatorCAR, b.valYes ?? "", b.valNo ?? "")}`,
+          `${b.reqFrk ?? ""}: ${fmtTri(indicatorFRK, b.valYes ?? "", b.valNo ?? "")}`,
         ]}
-        helpText="Kliknij kolor guzika i napis z bomby. Program idzie po regułach 1–7 i mówi NACIŚNIJ albo PRZYTRZYMAJ. Przy HOLD wybierz kolor paska po przytrzymaniu żeby dostać cyfrę do puszczenia."
+        helpText={b.help}
       />
 
       {neededBanner.length > 0 && <MissingFactsBanner needed={neededBanner} />}
 
       {/* 1) kolor */}
       <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-        1) Kolor guzika:
+        {b.secColor ?? ""}
       </Typography>
       <Box sx={{ display: "flex", gap: 1.5, mb: 2, flexWrap: "wrap" }}>
         {(["blue", "red", "white", "yellow"] as BtnColor[]).map((c) => (
@@ -191,14 +215,14 @@ export default function BigButton() {
               "&:hover": { bgcolor: COLOR_BG[c], opacity: 0.88 },
             }}
           >
-            {c === "blue" ? "niebieski" : c === "red" ? "czerwony" : c === "white" ? "biały" : "żółty"}
+            {colorWord(c)}
           </Button>
         ))}
       </Box>
 
       {/* 2) napis */}
       <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-        2) Napis na guziku:
+        {b.secLabel ?? ""}
       </Typography>
       <Box sx={{ display: "flex", gap: 1.5, mb: 2, flexWrap: "wrap" }}>
         {(["ABORT", "DETONATE", "HOLD", "PRESS"] as BtnLabel[]).map((l) => (
@@ -218,20 +242,22 @@ export default function BigButton() {
         <Box sx={{ minWidth: 280, maxWidth: 520, flex: 1 }}>
           {result.status === "needSelection" && (
             <Alert severity="info">
-              Wybierz kolor i napis powyżej — wynik pojawi się sam.
+              {b.needSelection ?? ""}
             </Alert>
           )}
 
           {result.status === "need" && (
             <Alert severity="warning" sx={{ border: "3px solid #ed6c02" }}>
               <AlertTitle sx={{ fontWeight: 900, fontSize: 18 }}>
-                NAJPIERW WPISZ POWYŻEJ: {result.needed.map((k) => FACT_LABELS[k]).join(" • ")}
+                {fmt(b.blockedTitle ?? "", {
+                  list: result.needed.map(factLabelOf).join(" • "),
+                })}
               </AlertTitle>
               <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
-                Bez tego wynik jest nieznany — nie wiadomo NACIŚNIJ czy PRZYTRZYMAJ.
+                {b.blockedDesc ?? ""}
               </Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
-                Reguła {result.atRule}: {result.reason}. Uzupełnij w banerze powyżej albo w lewym panelu.
+                {fmt(b.blockedRule ?? "", { n: result.atRule, r: result.reason })}
               </Typography>
             </Alert>
           )}
@@ -239,10 +265,10 @@ export default function BigButton() {
           {result.status === "tap" && (
             <Alert severity="success">
               <AlertTitle sx={{ fontWeight: 900, fontSize: 20 }}>
-                NACIŚNIJ I OD RAZU PUŚĆ
+                {b.tapTitle ?? ""}
               </AlertTitle>
               <Typography variant="body2">
-                Reguła {result.rule}: {result.desc}.
+                {b.ruleWord ?? ""} {result.rule}: {result.desc}.
               </Typography>
             </Alert>
           )}
@@ -250,18 +276,17 @@ export default function BigButton() {
           {result.status === "hold" && (
             <Alert severity="success" sx={{ mb: 2 }}>
               <AlertTitle sx={{ fontWeight: 900, fontSize: 20 }}>
-                PRZYTRZYMAJ GUZIK
+                {b.holdTitle ?? ""}
               </AlertTitle>
               <Typography variant="body2">
-                Reguła {result.rule}: {result.desc}. Po przytrzymaniu zapali się pasek —
-                kliknij jego kolor:
+                {b.ruleWord ?? ""} {result.rule}: {result.desc}. {b.stripPrompt ?? ""}
               </Typography>
               <Box sx={{ display: "flex", gap: 1, mt: 1.5, flexWrap: "wrap" }}>
                 {(
                   [
-                    { v: "blue" as StripColor, label: "niebieski pasek → 4" },
-                    { v: "yellow" as StripColor, label: "żółty pasek → 5" },
-                    { v: "other" as StripColor, label: "inny (biały/czerwony/…) → 1" },
+                    { v: "blue" as StripColor, label: b.stripBlue ?? "" },
+                    { v: "yellow" as StripColor, label: b.stripYellow ?? "" },
+                    { v: "other" as StripColor, label: b.stripOther ?? "" },
                   ]
                 ).map((o) => (
                   <Button
@@ -279,10 +304,10 @@ export default function BigButton() {
               {strip && (
                 <Paper elevation={0} sx={{ mt: 1.5, p: 1.5, bgcolor: "rgba(46,125,50,0.12)" }}>
                   <Typography variant="h5" sx={{ fontWeight: 900 }}>
-                    PUŚĆ GDY NA LICZNIKU JEST {STRIP_DIGIT[strip]}
+                    {fmt(b.releaseTitle ?? "", { d: STRIP_DIGIT[strip] })}
                   </Typography>
                   <Typography variant="body2">
-                    (cyfra {STRIP_DIGIT[strip]} gdziekolwiek na timerze)
+                    {fmt(b.releaseSub ?? "", { d: STRIP_DIGIT[strip] })}
                   </Typography>
                 </Paper>
               )}

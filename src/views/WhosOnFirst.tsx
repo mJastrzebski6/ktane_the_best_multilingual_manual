@@ -39,29 +39,42 @@ function parsePosition(pos?: string): PositionCode | null {
   return allowed[pos] ? (pos as PositionCode) : null;
 }
 
-function positionLabel(pos: PositionCode) {
+function positionLabel(
+  pos: PositionCode,
+  names: { left: string; right: string; top: string; mid: string; bottom: string }
+) {
   const [col, row] = pos.split("_") as ["P" | "L", "G" | "Ś" | "D"];
 
-  const colName = col === "P" ? "Lewo" : "Prawo";
-  const rowName = row === "G" ? "Góra" : row === "Ś" ? "Środek" : "Dół";
+  const colName = col === "P" ? names.left : names.right;
+  const rowName = row === "G" ? names.top : row === "Ś" ? names.mid : names.bottom;
 
   return { short: `${col}/${row}`, long: `${colName} / ${rowName}` };
 }
 
 export default function WhosOnFirst() {
   const t = useAppStore((s) => s.t);
+  const lang = useAppStore((s) => s.lang);
+  const w = (t?.ui?.whos ?? {}) as Record<string, string>;
+  const noData = (t?.ui?.common as Record<string, string> | undefined)?.noData ?? "";
+  const names = {
+    left: w.colLeft ?? "",
+    right: w.colRight ?? "",
+    top: w.rowTop ?? "",
+    mid: w.rowMid ?? "",
+    bottom: w.rowBottom ?? "",
+  };
 
   const table = (t.whosfirstwordstable ?? []) as WhosFirstRow[];
   const helpText: string = useAppStore((s) => s.t.whosonfirstHelpText);
 
   const rows = useMemo(() => {
     return [...table]
-      .sort((a, b) => a.key.localeCompare(b.key, "pl"))
+      .sort((a, b) => a.key.localeCompare(b.key, lang))
       .map((row) => ({
         key: row.key,
         clippedWords: takeUntilIncludingKey(row.words, row.key),
       }));
-  }, [table]);
+  }, [table, lang]);
 
   // Mapowanie: słowo -> pozycja (statycznie wyświetlane nad tabelą)
   const positionPairs = useMemo(() => {
@@ -74,18 +87,18 @@ export default function WhosOnFirst() {
         return key && pos ? { key, pos } : null;
       })
       .filter((x): x is { key: string; pos: PositionCode } => Boolean(x))
-      .sort((a, b) => a.key.localeCompare(b.key, "pl"));
-  }, [t.whosfirstpositiontable]);
+      .sort((a, b) => a.key.localeCompare(b.key, lang));
+  }, [t.whosfirstpositiontable, lang]);
 
   return (
     <Box>
-      <ModuleHeader title="Who's on First" helpText={helpText} />
+      <ModuleHeader title={w.title ?? "Who's on First"} helpText={helpText} />
 
       {/* STATYCZNA LISTA: CO → GDZIE */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
           {positionPairs.map(({ key, pos }) => {
-            const lab = positionLabel(pos);
+            const lab = positionLabel(pos, names);
             return (
               <Chip
                 key={key}
@@ -98,7 +111,7 @@ export default function WhosOnFirst() {
 
           {positionPairs.length === 0 && (
             <Typography variant="body2" color="text.secondary">
-              No data in this language file
+              {noData}
             </Typography>
           )}
         </Stack>
@@ -109,10 +122,10 @@ export default function WhosOnFirst() {
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700, width: 180 }}>
-                Słowo klucz
+                {w.thKey ?? ""}
               </TableCell>
               <TableCell sx={{ fontWeight: 700 }}>
-                Słowa (do momentu wystąpienia klucza włącznie)
+                {w.thWords ?? ""}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -129,7 +142,7 @@ export default function WhosOnFirst() {
 
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={2}>No data in this language file</TableCell>
+                <TableCell colSpan={2}>{noData}</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -69,15 +69,29 @@ export type ResettableBombFacts = {
 
 export type FactKey = keyof ResettableBombFacts;
 
-/** Duże, czytelne etykiety faktów do banerów "UZUPEŁNIJ". */
-export const FACT_LABELS: Record<FactKey, string> = {
-  serialLastDigitEven: "PARZYSTOŚĆ OSTATNIEJ CYFRY NUMERU SERYJNEGO",
-  serialHasVowel: "SAMOGŁOSKA W NUMERZE SERYJNYM",
-  indicatorCAR: "WSKAŹNIK CAR (czy się świeci)",
-  indicatorFRK: "WSKAŹNIK FRK (czy się świeci)",
-  hasParallelPort: "PORT RÓWNOLEGŁY",
-  batteryCount: "LICZBA BATERII",
-};
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** Głębokie scalanie słowników: tablice z nadpisania wygrywają, brakujące klucze biorą się z bazy (en). */
+function mergeDeep(base: any, over: any): any {
+  if (Array.isArray(over)) return over;
+  if (isPlainObject(base) && isPlainObject(over)) {
+    const out: Record<string, unknown> = { ...base };
+    for (const k of Object.keys(over)) {
+      out[k] = k in out ? mergeDeep(out[k], over[k]) : over[k];
+    }
+    return out;
+  }
+  return over === undefined ? base : over;
+}
+
+/** Proste wstawianie {kluczy} do szablonów z JSON. */
+export function fmt(tpl: string, vars: Record<string, string | number>): string {
+  let s = tpl;
+  for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+  return s;
+}
 
 type AppState = {
   // language
@@ -112,16 +126,18 @@ const defaultBombFacts: ResettableBombFacts = {
   batteryCount: null,
 };
 
+const baseLang = languages["en"] ?? {};
+
 export const useAppStore = create<AppState>((set) => ({
   // language
   lang: defaultLang,
-  t: languages[defaultLang],
+  t: mergeDeep(baseLang, languages[defaultLang] ?? {}),
   availableLangs,
 
   setLang: (lang) =>
     set({
       lang,
-      t: languages[lang],
+      t: mergeDeep(baseLang, languages[lang] ?? baseLang),
     }),
 
   // view

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Box, Button, Typography, Paper, Alert, AlertTitle } from "@mui/material";
 import ModuleHeader from "../components/ModuleHeader";
+import { fmt, useAppStore } from "../store/AppStore";
 
 interface Position {
   col: number; // 1..6
@@ -262,6 +263,7 @@ export default function Maze() {
   const [phase, setPhase] = React.useState<"maze" | "start" | "end">("maze");
   const [startPos, setStartPos] = React.useState<Position | null>(null);
   const [endPos, setEndPos] = React.useState<Position | null>(null);
+  const mz = (useAppStore((s) => s.t?.ui?.maze) ?? {}) as Record<string, string>;
 
   const selected = PARSED_MAZES.find((m) => m.id === selectedId) ?? null;
   // do podglądu ścian: wybrany, a jak nie ma — najechany
@@ -417,13 +419,18 @@ export default function Maze() {
     );
   };
 
+  const dirWord = (d: Dir) =>
+    d === "UP" ? (mz.dirUp ?? d) : d === "DOWN" ? (mz.dirDown ?? d) : d === "LEFT" ? (mz.dirLeft ?? d) : (mz.dirRight ?? d);
+
+  const ptsOf = (mm: ParsedMaze) => mm.indicators.map((p) => `(${p.col},${p.row})`).join(" + ");
+
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Labirynt / Maze"
+        title={mz.title ?? "Maze"}
         onReset={resetAll}
-        requiredData={["POZYCJE ZIELONYCH KÓŁEK"]}
-        helpText="Na planszy od razu widać wszystkie stałe kółka (9 par). Najedź myszką na kółko — reszta się wyszarzy, a podświetli się tylko ta para. Kliknij kółko żeby wybrać labirynt, potem kliknij start (biały kwadrat) i cel (czerwony trójkąt). Program pokaże najkrótszą drogę (BFS)."
+        requiredData={[mz.req ?? ""]}
+        helpText={mz.help}
       />
 
       <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", alignItems: "center" }}>
@@ -432,7 +439,9 @@ export default function Maze() {
           color="success"
           onClick={() => setPhase("maze")}
         >
-          1. Kółka {selected ? `(${selected.id}) ✓` : hoverId ? `(${hoverId}?)` : ""}
+          {fmt(mz.phaseMaze ?? "", {
+            v: selected ? `(${selected.id}) ✓` : hoverId ? `(${hoverId}?)` : "",
+          })}
         </Button>
         <Button
           variant={phase === "start" ? "contained" : "outlined"}
@@ -440,7 +449,7 @@ export default function Maze() {
           onClick={() => selected && setPhase("start")}
           disabled={!selected}
         >
-          2. Start □
+          {mz.phaseStart ?? ""}
         </Button>
         <Button
           variant={phase === "end" ? "contained" : "outlined"}
@@ -448,11 +457,11 @@ export default function Maze() {
           onClick={() => startPos && setPhase("end")}
           disabled={!startPos}
         >
-          3. Cel ▲
+          {mz.phaseGoal ?? ""}
         </Button>
         {selected && (
           <Button variant="text" onClick={changeMaze}>
-            Zmień labirynt
+            {mz.changeMaze ?? ""}
           </Button>
         )}
         <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -531,7 +540,7 @@ export default function Maze() {
             ))}
           </Box>
           <Typography variant="caption" sx={{ opacity: 0.6 }}>
-            kolumny 1–6 od lewej, wiersze 1–6 od góry • najedź na kółko żeby zobaczyć parę
+            {mz.axesCaption ?? ""}
           </Typography>
         </Paper>
 
@@ -539,22 +548,26 @@ export default function Maze() {
           {!selected && (
             <Alert severity="info" sx={{ mb: 1 }}>
               {hoverId
-                ? `Podgląd pary ${hoverId}: ${PARSED_MAZES.find((m) => m.id === hoverId)!
-                    .indicators.map((p) => `(${p.col},${p.row})`)
-                    .join(" + ")} — kliknij kółko żeby wybrać.`
-                : "Najedź na dowolne kółko — zostanie tylko jego stała para, reszta się wyszarzy. Kliknij żeby wybrać labirynt."}
+                ? fmt(mz.previewPair ?? "", {
+                    id: hoverId,
+                    pts: ptsOf(PARSED_MAZES.find((mm) => mm.id === hoverId)!),
+                  })
+                : (mz.hoverNone ?? "")}
             </Alert>
           )}
           {selected && (
             <Typography variant="body2" sx={{ mb: 1 }}>
-              Labirynt {selected.id}: kółka{" "}
-              {selected.indicators.map((p) => `(${p.col},${p.row})`).join(" + ")}
+              {fmt(mz.mazeLine ?? "", { id: selected.id, pts: ptsOf(selected) })}
             </Typography>
           )}
           {solution.length > 0 && startPos && endPos && (
             <Alert severity="success" sx={{ mb: 1 }}>
               <AlertTitle>
-                Do celu w {solution.length} ruchach ({startPos.col},{startPos.row}) → ({endPos.col},{endPos.row})
+                {fmt(mz.solutionTitle ?? "", {
+                  n: solution.length,
+                  a: `(${startPos.col},${startPos.row})`,
+                  b: `(${endPos.col},${endPos.row})`,
+                })}
               </AlertTitle>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, fontSize: 20, fontWeight: 700 }}>
                 {solution.map((d, i) => (
@@ -562,22 +575,18 @@ export default function Maze() {
                 ))}
               </Box>
               <Typography variant="body2" sx={{ mt: 1 }}>
-                {solution
-                  .map((d) =>
-                    d === "UP" ? "góra" : d === "DOWN" ? "dół" : d === "LEFT" ? "lewo" : "prawo"
-                  )
-                  .join(" → ")}
+                {solution.map(dirWord).join(" → ")}
               </Typography>
             </Alert>
           )}
           {selected && startPos && endPos && solution.length === 0 && (
-            <Alert severity="error">Brak przejścia — sprawdź punkty.</Alert>
+            <Alert severity="error">{mz.noPath ?? ""}</Alert>
           )}
           {selected && !startPos && (
-            <Alert severity="info">Kliknij pole startu (biały kwadrat).</Alert>
+            <Alert severity="info">{mz.clickStart ?? ""}</Alert>
           )}
           {selected && startPos && !endPos && (
-            <Alert severity="info">Kliknij pole celu (czerwony trójkąt).</Alert>
+            <Alert severity="info">{mz.clickGoal ?? ""}</Alert>
           )}
         </Box>
       </Box>

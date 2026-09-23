@@ -10,50 +10,35 @@ import {
   Box,
   Typography,
 } from "@mui/material";
+import { useAppStore } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
 
 type WireColor = "red" | "blue" | "black";
 
-type OccurrenceRow = {
-  occurrenceLabel: string;
-  cutIfConnectedTo: string;
+// Cele z manuala (które litery A/B/C), kolejność wierszy 1–9.
+const TARGETS: Record<WireColor, string[][]> = {
+  red: [["C"], ["B"], ["A"], ["A", "C"], ["B"], ["A", "C"], ["A", "B", "C"], ["A", "B"], ["B"]],
+  blue: [["B"], ["A", "C"], ["B"], ["A"], ["B"], ["B", "C"], ["C"], ["A", "C"], ["A"]],
+  black: [["A", "B", "C"], ["A", "C"], ["B"], ["A", "C"], ["B"], ["B", "C"], ["A", "B"], ["C"], ["C"]],
 };
 
-const RED: OccurrenceRow[] = [
-  { occurrenceLabel: "First red occurrence", cutIfConnectedTo: "C" },
-  { occurrenceLabel: "Second red occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Third red occurrence", cutIfConnectedTo: "A" },
-  { occurrenceLabel: "Fourth red occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Fifth red occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Sixth red occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Seventh red occurrence", cutIfConnectedTo: "A, B, C" },
-  { occurrenceLabel: "Eighth red occurrence", cutIfConnectedTo: "A or B" },
-  { occurrenceLabel: "Ninth red occurrence", cutIfConnectedTo: "B" },
-];
+const FALLBACK_ORDINALS = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth"];
 
-const BLUE: OccurrenceRow[] = [
-  { occurrenceLabel: "First blue occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Second blue occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Third blue occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Fourth blue occurrence", cutIfConnectedTo: "A" },
-  { occurrenceLabel: "Fifth blue occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Sixth blue occurrence", cutIfConnectedTo: "B or C" },
-  { occurrenceLabel: "Seventh blue occurrence", cutIfConnectedTo: "C" },
-  { occurrenceLabel: "Eighth blue occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Ninth blue occurrence", cutIfConnectedTo: "A" },
-];
+function occurrenceLabel(sq: Record<string, unknown>, color: WireColor, i: number): string {
+  const ordinals = (sq.ordinals as string[] | undefined) ?? FALLBACK_ORDINALS;
+  const occurrence = (sq.occurrence as string | undefined) ?? "occurrence";
+  const adj =
+    color === "red" ? ((sq.red as string | undefined) ?? "red")
+    : color === "blue" ? ((sq.blue as string | undefined) ?? "blue")
+    : ((sq.black as string | undefined) ?? "black");
+  return `${ordinals[i] ?? `#${i + 1}`} ${adj} ${occurrence}`;
+}
 
-const BLACK: OccurrenceRow[] = [
-  { occurrenceLabel: "First black occurrence", cutIfConnectedTo: "A, B, C" },
-  { occurrenceLabel: "Second black occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Third black occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Fourth black occurrence", cutIfConnectedTo: "A or C" },
-  { occurrenceLabel: "Fifth black occurrence", cutIfConnectedTo: "B" },
-  { occurrenceLabel: "Sixth black occurrence", cutIfConnectedTo: "B or C" },
-  { occurrenceLabel: "Seventh black occurrence", cutIfConnectedTo: "A or B" },
-  { occurrenceLabel: "Eighth black occurrence", cutIfConnectedTo: "C" },
-  { occurrenceLabel: "Ninth black occurrence", cutIfConnectedTo: "C" },
-];
+function cutLabel(targets: string[], orWord: string): string {
+  if (targets.length >= 3) return targets.join(", ");
+  if (targets.length === 2) return `${targets[0]} ${orWord} ${targets[1]}`;
+  return targets[0] ?? "";
+}
 
 const HIGHLIGHT: Record<WireColor, string> = {
   red: "rgba(244, 67, 54, 0.40)",
@@ -75,6 +60,8 @@ const EMPTY_SELECTED: Record<WireColor, number | null> = {
 };
 
 export default function WireABC() {
+  const sq = (useAppStore((s) => s.t?.ui?.seq) ?? {}) as Record<string, unknown>;
+  const orWord = (sq.orWord as string | undefined) ?? "or";
   const [selected, setSelected] =
     React.useState<Record<WireColor, number | null>>(EMPTY_SELECTED);
 
@@ -132,7 +119,11 @@ export default function WireABC() {
 
   return (
     <Box>
-      <ModuleHeader title="Wires ABC" onReset={handleReset} />
+      <ModuleHeader
+        title={(sq.title as string | undefined) ?? "Wire Sequence"}
+        onReset={handleReset}
+        helpText={(sq.help as string | undefined) ?? ""}
+      />
 
       <TableContainer component={Paper} elevation={2}>
         <Table
@@ -144,30 +135,30 @@ export default function WireABC() {
             <TableRow>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(2)}>
                 <Typography sx={{ color: "red" }}>
-                  Red Wire Occurrences
+                  {(sq.groupRed as string | undefined) ?? ""}
                 </Typography>
               </TableCell>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(4)}>
                 <Typography sx={{ color: "blue" }}>
-                  Blue Wire Occurrences
+                  {(sq.groupBlue as string | undefined) ?? ""}
                 </Typography>
               </TableCell>
               <TableCell align="center" colSpan={2} sx={groupHeaderSx(6)}>
                 <Typography sx={{ color: "black" }}>
-                  Black Wire Occurrences
+                  {(sq.groupBlack as string | undefined) ?? ""}
                 </Typography>
               </TableCell>
             </TableRow>
 
             <TableRow sx={{ borderBottom: "3px solid rgba(0,0,0,0.35)" }}>
-              <TableCell sx={headerCellSx(1)}>Wire Occurrence</TableCell>
-              <TableCell sx={headerCellSx(2)}>Cut if connected to</TableCell>
+              <TableCell sx={headerCellSx(1)}>{(sq.colOcc as string | undefined) ?? ""}</TableCell>
+              <TableCell sx={headerCellSx(2)}>{(sq.colCut as string | undefined) ?? ""}</TableCell>
 
-              <TableCell sx={headerCellSx(3)}>Wire Occurrence</TableCell>
-              <TableCell sx={headerCellSx(4)}>Cut if connected to</TableCell>
+              <TableCell sx={headerCellSx(3)}>{(sq.colOcc as string | undefined) ?? ""}</TableCell>
+              <TableCell sx={headerCellSx(4)}>{(sq.colCut as string | undefined) ?? ""}</TableCell>
 
-              <TableCell sx={headerCellSx(5)}>Wire Occurrence</TableCell>
-              <TableCell sx={headerCellSx(6)}>Cut if connected to</TableCell>
+              <TableCell sx={headerCellSx(5)}>{(sq.colOcc as string | undefined) ?? ""}</TableCell>
+              <TableCell sx={headerCellSx(6)}>{(sq.colCut as string | undefined) ?? ""}</TableCell>
             </TableRow>
           </TableHead>
 
@@ -178,39 +169,39 @@ export default function WireABC() {
                   sx={cellSx("red", i, 1)}
                   onClick={() => handleClick("red", i)}
                 >
-                  {RED[i].occurrenceLabel}
+                  {occurrenceLabel(sq, "red", i)}
                 </TableCell>
                 <TableCell
                   sx={cellSx("red", i, 2)}
                   onClick={() => handleClick("red", i)}
                 >
-                  {RED[i].cutIfConnectedTo}
+                  {cutLabel(TARGETS.red[i], orWord)}
                 </TableCell>
 
                 <TableCell
                   sx={cellSx("blue", i, 3)}
                   onClick={() => handleClick("blue", i)}
                 >
-                  {BLUE[i].occurrenceLabel}
+                  {occurrenceLabel(sq, "blue", i)}
                 </TableCell>
                 <TableCell
                   sx={cellSx("blue", i, 4)}
                   onClick={() => handleClick("blue", i)}
                 >
-                  {BLUE[i].cutIfConnectedTo}
+                  {cutLabel(TARGETS.blue[i], orWord)}
                 </TableCell>
 
                 <TableCell
                   sx={cellSx("black", i, 5)}
                   onClick={() => handleClick("black", i)}
                 >
-                  {BLACK[i].occurrenceLabel}
+                  {occurrenceLabel(sq, "black", i)}
                 </TableCell>
                 <TableCell
                   sx={cellSx("black", i, 6)}
                   onClick={() => handleClick("black", i)}
                 >
-                  {BLACK[i].cutIfConnectedTo}
+                  {cutLabel(TARGETS.black[i], orWord)}
                 </TableCell>
               </TableRow>
             ))}

@@ -17,11 +17,11 @@ import MissingFactsBanner from "../components/MissingFactsBanner";
 type SimonColor = "red" | "blue" | "green" | "yellow";
 type Strikes = 0 | 1 | 2;
 
-const COLOR_LABEL: Record<SimonColor, string> = {
-  red: "Czerwony",
-  blue: "Niebieski",
-  green: "Zielony",
-  yellow: "Żółty",
+const COLOR_KEYS: Record<SimonColor, "colRed" | "colBlue" | "colGreen" | "colYellow"> = {
+  red: "colRed",
+  blue: "colBlue",
+  green: "colGreen",
+  yellow: "colYellow",
 };
 
 const COLOR_SX: Record<SimonColor, { bgcolor: string; color: string }> = {
@@ -56,10 +56,11 @@ const SIMON_MAP: Record<
 
 export default function Simon() {
   const serialHasVowel = useAppStore((s) => s.bombFacts.serialHasVowel);
+  const ui = (useAppStore((s) => s.t?.ui?.simon) ?? {}) as Record<string, string>;
+  const colorLabel = (c: SimonColor) => ui[COLOR_KEYS[c]] ?? c;
 
   const [strikes, setStrikes] = React.useState<Strikes>(0);
   const [flashes, setFlashes] = React.useState<SimonColor[]>([]);
-  const [presses, setPresses] = React.useState<SimonColor[]>([]);
 
   const hasVowelKnown = serialHasVowel !== null;
   const activeTableKey: "hasVowel" | "noVowel" = serialHasVowel
@@ -78,24 +79,18 @@ export default function Simon() {
     []
   );
 
-  React.useEffect(() => {
-    setPresses(() => recomputePresses(flashes, strikes, activeTableKey));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    console.log(serialHasVowel);
-  }, [serialHasVowel, strikes]);
+  const presses = React.useMemo(
+    () => recomputePresses(flashes, strikes, activeTableKey),
+    [recomputePresses, flashes, strikes, activeTableKey]
+  );
 
   const onColorClick = (flashColor: SimonColor) => {
     if (!hasVowelKnown) return;
-    setFlashes((prev) => {
-      const next = [...prev, flashColor];
-      setPresses(recomputePresses(next, strikes, activeTableKey));
-      return next;
-    });
+    setFlashes((prev) => [...prev, flashColor]);
   };
 
   const resetModule = () => {
     setFlashes([]);
-    setPresses([]);
     setStrikes(0);
   };
 
@@ -108,7 +103,7 @@ export default function Simon() {
     if (seq.length === 0) {
       return (
         <Typography variant="body2" sx={{ opacity: 0.7 }}>
-          (pusto)
+          {ui.empty ?? "(empty)"}
         </Typography>
       );
     }
@@ -117,7 +112,7 @@ export default function Simon() {
         {seq.map((c, idx) => (
           <Chip
             key={`${c}-${idx}`}
-            label={COLOR_LABEL[c]}
+            label={colorLabel(c)}
             size="small"
             sx={{
               bgcolor: COLOR_SX[c].bgcolor,
@@ -133,11 +128,12 @@ export default function Simon() {
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Simon Says"
+        title={ui.title ?? "Simon Says"}
         onReset={resetModule}
         requiredData={[
-          `NUMER SERYJNY - ${serialHasVowel === null ? "?" : serialHasVowel ? "z samogłoską" : "bez samogłoski"}`,
+          `${ui.reqPrefix ?? ""}${serialHasVowel === null ? "?" : serialHasVowel ? (ui.reqVowel ?? "") : (ui.reqNoVowel ?? "")}`,
         ]}
+        helpText={ui.help}
       />
 
       <MissingFactsBanner needed={["serialHasVowel"]} />
@@ -146,7 +142,7 @@ export default function Simon() {
 
       {/* Strikes */}
       <FormControl sx={{ mb: 2 }}>
-        <FormLabel>Liczba błędów (strikes)</FormLabel>
+        <FormLabel>{ui.strikes ?? "Strikes"}</FormLabel>
         <RadioGroup
           row
           value={String(strikes)}
@@ -174,7 +170,7 @@ export default function Simon() {
               fontWeight: 700,
             }}
           >
-            {COLOR_LABEL[c]}
+            {colorLabel(c)}
           </Button>
         ))}
       </Box>
@@ -183,18 +179,18 @@ export default function Simon() {
       <Box sx={{ display: "grid", gap: 2 }}>
         <Box>
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Kliknięte przez gracza (kolory, które migały)
+            {ui.flashed ?? ""}
           </Typography>
           {renderSeq(flashes)}
         </Box>
 
         <Box>
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Do kliknięcia (przeliczone wg tabeli)
+            {ui.toPress ?? ""}
           </Typography>
           {!hasVowelKnown ? (
             <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
-              NAJPIERW WPISZ POWYŻEJ CZY NUMER MA SAMOGŁOSKĘ — bez tego tabela jest nieznana.
+              {ui.needVowel ?? ""}
             </Typography>
           ) : (
             renderSeq(presses)

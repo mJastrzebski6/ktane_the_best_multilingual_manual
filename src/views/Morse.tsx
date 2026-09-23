@@ -56,6 +56,9 @@ export default function Morse() {
   const langFile = useAppStore((s) => s.t);
   const morseWords = (langFile.morseWords ?? {}) as Record<string, number>;
   const helpText: string = useAppStore((s) => s.t.morseHelpText);
+  const uiCommon = (useAppStore((s) => s.t?.ui?.common) ?? {}) as Record<string, string>;
+  const morseTitle: string =
+    (useAppStore((s) => s.t?.ui?.morse) as Record<string, string> | undefined)?.title ?? "Morse";
 
   const hasMorseData = Object.keys(morseWords).length > 0;
 
@@ -126,7 +129,7 @@ export default function Morse() {
 
   return (
     <Box sx={{ userSelect: "none" }}>
-      <ModuleHeader title="Morse" onReset={reset} helpText={helpText} />
+      <ModuleHeader title={morseTitle} onReset={reset} helpText={helpText} />
 
       <Divider sx={{ my: 2 }} />
 
@@ -171,7 +174,7 @@ export default function Morse() {
             fontStyle: "italic",
           }}
         >
-          No data in this language file.
+          {uiCommon.noData ?? ""}
         </Typography>
       )}
 

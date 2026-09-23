@@ -132,6 +132,7 @@ export function LeftNav() {
   } = useAppStore();
 
   const batteryCount = bombFacts.batteryCount;
+  const uiNav = (useAppStore((s) => s.t?.ui?.nav) ?? {}) as Record<string, string>;
 
   const setCount = (c: BatteryCount) => setBatteryCount(c);
 
@@ -170,7 +171,7 @@ export function LeftNav() {
       {/* LANGUAGE SELECT */}
       <Box sx={{ p: 1 }}>
         <Typography variant="caption" sx={{ mb: 0.5, display: "block" }}>
-          Language
+          {uiNav.language ?? "Language"}
         </Typography>
 
         <Select
@@ -257,69 +258,69 @@ export function LeftNav() {
             mb: 0.5,
           }}
         >
-          <Typography variant="subtitle2">Global facts</Typography>
+          <Typography variant="subtitle2">{uiNav.globalFacts ?? "Global facts"}</Typography>
 
           <Button size="small" variant="outlined" onClick={resetBombFacts}>
-            Reset
+            {uiNav.reset ?? "Reset"}
           </Button>
         </Box>
 
         <Box sx={{ overflowY: "auto" }}>
           <TriStateRow
-            label="Ostatnia cyfra seryjnego parzysta"
+            label={uiNav.factSerialEven ?? ""}
             value={bombFacts.serialLastDigitEven}
             onChange={(v) => setBombFacts({ serialLastDigitEven: v })}
-            trueLabel="PARZYSTA"
-            falseLabel="NIEPARZ."
+            trueLabel={uiNav.optEven ?? ""}
+            falseLabel={uiNav.optOdd ?? ""}
           />
 
           <TriStateRow
-            label="Seryjny ma samogłoskę"
+            label={uiNav.factVowel ?? ""}
             value={bombFacts.serialHasVowel}
             onChange={(v) => setBombFacts({ serialHasVowel: v })}
-            trueLabel="TAK"
-            falseLabel="NIE"
+            trueLabel={uiNav.optYes ?? ""}
+            falseLabel={uiNav.optNo ?? ""}
           />
 
           <Divider sx={{ my: 0.5 }} />
 
           <TriStateRow
-            label="Wskaźnik CAR się świeci"
+            label={uiNav.factCar ?? ""}
             value={bombFacts.indicatorCAR}
             onChange={(v) => setBombFacts({ indicatorCAR: v })}
-            trueLabel="ŚWIECI"
-            falseLabel="NIE"
+            trueLabel={uiNav.optLit ?? ""}
+            falseLabel={uiNav.optUnlit ?? ""}
           />
 
           <TriStateRow
-            label="Wskaźnik FRK się świeci"
+            label={uiNav.factFrk ?? ""}
             value={bombFacts.indicatorFRK}
             onChange={(v) => setBombFacts({ indicatorFRK: v })}
-            trueLabel="ŚWIECI"
-            falseLabel="NIE"
+            trueLabel={uiNav.optLit ?? ""}
+            falseLabel={uiNav.optUnlit ?? ""}
           />
 
           <Divider sx={{ my: 0.5 }} />
 
           <TriStateRow
-            label="Ma port równoległy"
+            label={uiNav.factParallel ?? ""}
             value={bombFacts.hasParallelPort}
             onChange={(v) => setBombFacts({ hasParallelPort: v })}
-            trueLabel="JEST"
-            falseLabel="BRAK"
+            trueLabel={uiNav.optPresent ?? ""}
+            falseLabel={uiNav.optAbsent ?? ""}
           />
 
           <Divider sx={{ my: 0.5 }} />
 
           <Typography variant="caption" sx={{ display: "block", mb: 0.5, fontSize: 11 }}>
-            Baterie (? / 0 / 1 / 2 / 3+)
+            {uiNav.batteries ?? ""}
           </Typography>
 
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             <BorderedInlineChoice
               selected={batteryCount === null}
               onSelect={() => setCount(null)}
-              label="?"
+              label={uiNav.optUnknown ?? "?"}
             />
             <BorderedInlineChoice
               selected={batteryCount === 0}

@@ -23,6 +23,8 @@ export default function Password() {
     : [];
   const helpText: string =
     typeof t?.passwordHelpText === "string" ? t.passwordHelpText : "";
+  const pwUi = (t?.ui?.password ?? {}) as Record<string, string>;
+  const pwTitle = pwUi.title ?? "Password";
 
   const hasLanguageData = words.length > 0;
 
@@ -152,18 +154,21 @@ export default function Password() {
   };
 
   // Jeśli nie ma danych w pliku językowym, nie renderujemy logiki modułu (żeby nic nie wybuchało)
+  const noData = (t as Record<string, unknown>)?.ui as
+    | { common?: { noData?: string } }
+    | undefined;
   if (!hasLanguageData) {
     return (
       <Box sx={noSelectSx}>
-        <ModuleHeader title="Password" onReset={reset} helpText={helpText} />
-        <Typography variant="body1">No data in this language file.</Typography>
+        <ModuleHeader title={pwTitle} onReset={reset} helpText={helpText} />
+        <Typography variant="body1">{noData?.common?.noData ?? "No data."}</Typography>
       </Box>
     );
   }
 
   return (
     <Box sx={noSelectSx}>
-      <ModuleHeader title="Password" onReset={reset} helpText={helpText} />
+      <ModuleHeader title={pwTitle} onReset={reset} helpText={helpText} />
 
       <Box
         sx={{
@@ -183,7 +188,7 @@ export default function Password() {
             >
               <TextField
                 size="small"
-                label={`Pozycja ${colIdx + 1}`}
+                label={(pwUi.posN ?? "Position {n}").replace("{n}", String(colIdx + 1))}
                 value={columnInputs[colIdx]}
                 onChange={(e) =>
                   handleColumnInputChange(colIdx, e.target.value)
@@ -250,7 +255,7 @@ export default function Password() {
         {/* Wyniki */}
         <Box sx={{ ...noSelectSx, minWidth: "320px" }}>
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Kandydaci: {filteredWords.length}
+            {(pwUi.candidates ?? "").replace("{n}", String(filteredWords.length))}
           </Typography>
 
           <Box

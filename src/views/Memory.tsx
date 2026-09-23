@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@mui/material";
 import ModuleHeader from "../components/ModuleHeader";
+import { fmt, useAppStore } from "../store/AppStore";
 
 type DisplayNum = 1 | 2 | 3 | 4;
 type StageNum = 1 | 2 | 3 | 4 | 5;
@@ -36,37 +37,50 @@ const emptyStage = (): StageInput => ({
 
 // Zwraca instrukcję wg manuala (pozycja lub etykieta).
 // history: dotychczas wciśnięte (indeks 0 = stage1).
+// Teksty budowane z szablonów językowych (m.*T), logika ta sama we wszystkich językach.
+interface MemTemplates {
+  posT: string;
+  labelT: string;
+  refT: string;
+  label4T: string;
+}
+
 function ruleFor(
   stage: StageNum,
   display: DisplayNum,
-  history: Pressed[]
+  history: Pressed[],
+  m: MemTemplates
 ): { kind: "position"; value: DisplayNum; text: string } | { kind: "label"; value: DisplayNum; text: string } {
+  const pos = (n: number, ref?: number) =>
+    fmt(m.posT, { n }) + (ref === undefined ? "" : " " + fmt(m.refT, { n: ref }));
+  const lab = (l: number, ref?: number) =>
+    fmt(m.labelT, { l }) + (ref === undefined ? "" : " " + fmt(m.refT, { n: ref }));
   switch (stage) {
     case 1:
-      if (display === 1) return { kind: "position", value: 2, text: "poz. 2" };
-      if (display === 2) return { kind: "position", value: 2, text: "poz. 2" };
-      if (display === 3) return { kind: "position", value: 3, text: "poz. 3" };
-      return { kind: "position", value: 4, text: "poz. 4" };
+      if (display === 1) return { kind: "position", value: 2, text: pos(2) };
+      if (display === 2) return { kind: "position", value: 2, text: pos(2) };
+      if (display === 3) return { kind: "position", value: 3, text: pos(3) };
+      return { kind: "position", value: 4, text: pos(4) };
     case 2:
-      if (display === 1) return { kind: "label", value: 4, text: 'etykieta "4"' };
-      if (display === 2) return { kind: "position", value: history[0].pos, text: `poz. ${history[0].pos} (jak w st.1)` };
-      if (display === 3) return { kind: "position", value: 1, text: "poz. 1" };
-      return { kind: "position", value: history[0].pos, text: `poz. ${history[0].pos} (jak w st.1)` };
+      if (display === 1) return { kind: "label", value: 4, text: m.label4T };
+      if (display === 2) return { kind: "position", value: history[0].pos, text: pos(history[0].pos, 1) };
+      if (display === 3) return { kind: "position", value: 1, text: pos(1) };
+      return { kind: "position", value: history[0].pos, text: pos(history[0].pos, 1) };
     case 3:
-      if (display === 1) return { kind: "label", value: history[1].label, text: `etykieta "${history[1].label}" (jak w st.2)` };
-      if (display === 2) return { kind: "label", value: history[0].label, text: `etykieta "${history[0].label}" (jak w st.1)` };
-      if (display === 3) return { kind: "position", value: 3, text: "poz. 3" };
-      return { kind: "label", value: 4, text: 'etykieta "4"' };
+      if (display === 1) return { kind: "label", value: history[1].label, text: lab(history[1].label, 2) };
+      if (display === 2) return { kind: "label", value: history[0].label, text: lab(history[0].label, 1) };
+      if (display === 3) return { kind: "position", value: 3, text: pos(3) };
+      return { kind: "label", value: 4, text: m.label4T };
     case 4:
-      if (display === 1) return { kind: "position", value: history[0].pos, text: `poz. ${history[0].pos} (jak w st.1)` };
-      if (display === 2) return { kind: "position", value: 1, text: "poz. 1" };
-      if (display === 3) return { kind: "position", value: history[1].pos, text: `poz. ${history[1].pos} (jak w st.2)` };
-      return { kind: "position", value: history[1].pos, text: `poz. ${history[1].pos} (jak w st.2)` };
+      if (display === 1) return { kind: "position", value: history[0].pos, text: pos(history[0].pos, 1) };
+      if (display === 2) return { kind: "position", value: 1, text: pos(1) };
+      if (display === 3) return { kind: "position", value: history[1].pos, text: pos(history[1].pos, 2) };
+      return { kind: "position", value: history[1].pos, text: pos(history[1].pos, 2) };
     case 5:
-      if (display === 1) return { kind: "label", value: history[0].label, text: `etykieta "${history[0].label}" (jak w st.1)` };
-      if (display === 2) return { kind: "label", value: history[1].label, text: `etykieta "${history[1].label}" (jak w st.2)` };
-      if (display === 3) return { kind: "label", value: history[3].label, text: `etykieta "${history[3].label}" (jak w st.4)` };
-      return { kind: "label", value: history[2].label, text: `etykieta "${history[2].label}" (jak w st.3)` };
+      if (display === 1) return { kind: "label", value: history[0].label, text: lab(history[0].label, 1) };
+      if (display === 2) return { kind: "label", value: history[1].label, text: lab(history[1].label, 2) };
+      if (display === 3) return { kind: "label", value: history[3].label, text: lab(history[3].label, 4) };
+      return { kind: "label", value: history[2].label, text: lab(history[2].label, 3) };
   }
 }
 
@@ -98,6 +112,17 @@ function resolveToPosition(
 }
 
 export default function Memory() {
+  const t = useAppStore((s) => s.t);
+  const m = (t?.ui?.memory ?? {}) as Record<string, string>;
+  const memT: MemTemplates = React.useMemo(
+    () => ({
+      posT: m.posT ?? "pos. {n}",
+      labelT: m.labelT ?? "label \"{l}\"",
+      refT: m.refT ?? "(as in st.{n})",
+      label4T: m.label4T ?? "label \"4\"",
+    }),
+    [m]
+  );
   const [stages, setStages] = React.useState<StageInput[]>(
     Array.from({ length: 5 }, emptyStage)
   );
@@ -119,7 +144,7 @@ export default function Memory() {
       const stageNum = (i + 1) as StageNum;
       if (!st.display) continue;
       if (!canCompute(stageNum, st, hist)) continue;
-      const rule = ruleFor(stageNum, st.display, hist);
+      const rule = ruleFor(stageNum, st.display, hist, memT);
       const pos = resolveToPosition(rule, st.labels);
       if (!pos) continue;
       const label = st.labels[pos - 1];
@@ -129,7 +154,7 @@ export default function Memory() {
       hist.push(pressed);
     }
     return out;
-  }, [stages]);
+  }, [stages, memT]);
 
   const histCompact = React.useMemo(
     () => history.filter((h): h is Pressed => h !== null),
@@ -164,7 +189,7 @@ export default function Memory() {
   const activeHist = histCompact.slice(0, activeIdx);
   const activeRule =
     activeInput.display && canCompute(activeStage, activeInput, activeHist)
-      ? ruleFor(activeStage, activeInput.display, activeHist)
+      ? ruleFor(activeStage, activeInput.display, activeHist, memT)
       : null;
   const activeResolved =
     activeRule && activeInput.display
@@ -176,22 +201,22 @@ export default function Memory() {
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Memory / Pamięć"
+        title={m.title ?? "Memory"}
         onReset={reset}
-        requiredData={["WYŚWIETLACZ (1-4)", "ETYKIETY 4 PRZYCISKÓW"]}
-        helpText="Dla każdego stage'u: kliknij liczbę na wyświetlaczu (1-4), potem dla każdej pozycji 1-4 kliknij etykietę widoczną na bombie. Program sam liczy który przycisk wcisnąć wg manuala i pamięta historię (przy błędnym wciśnięciu na bombie moduł wraca do stage 1 — wtedy kliknij Reset)."
+        requiredData={[m.reqDisplay ?? "", m.reqLabels ?? ""]}
+        helpText={m.help}
       />
 
       {/* Pasek stage'ów */}
       <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-        {([1, 2, 3, 4, 5] as StageNum[]).map((s) => (
+        {([1, 2, 3, 4, 5] as StageNum[]).map((sn) => (
           <Button
-            key={s}
-            variant={activeStage === s ? "contained" : "outlined"}
-            color={stageComplete(s - 1) ? "success" : "primary"}
-            onClick={() => setActiveStage(s)}
+            key={sn}
+            variant={activeStage === sn ? "contained" : "outlined"}
+            color={stageComplete(sn - 1) ? "success" : "primary"}
+            onClick={() => setActiveStage(sn)}
           >
-            Stage {s} {stageComplete(s - 1) ? "✓" : ""}
+            {fmt(m.stageN ?? "", { n: sn })} {stageComplete(sn - 1) ? "✓" : ""}
           </Button>
         ))}
       </Box>
@@ -200,11 +225,11 @@ export default function Memory() {
         {/* Edycja aktywnego stage */}
         <Paper elevation={2} sx={{ p: 2, minWidth: 320, maxWidth: 480 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-            Stage {activeStage}
+            {fmt(m.stageN ?? "", { n: activeStage })}
           </Typography>
 
           <Typography variant="body2" sx={{ mb: 1 }}>
-            1) Liczba na ekranie:
+            {m.displayPrompt ?? ""}
           </Typography>
           <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
             {([1, 2, 3, 4] as DisplayNum[]).map((d) => (
@@ -220,7 +245,7 @@ export default function Memory() {
           </Box>
 
           <Typography variant="body2" sx={{ mb: 1 }}>
-            2) Etykiety na 4 przyciskach od lewej (kliknij liczbę pod pozycją):
+            {m.labelsPrompt ?? ""}
           </Typography>
           <Box sx={{ display: "flex", gap: 1.5 }}>
             {([0, 1, 2, 3] as const).map((posIdx) => {
@@ -238,7 +263,7 @@ export default function Memory() {
                   }}
                 >
                   <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    POZ. {posIdx + 1}
+                    {fmt(m.posShort ?? "", { n: posIdx + 1 })}
                   </Typography>
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 0.5 }}>
                     {([1, 2, 3, 4] as DisplayNum[]).map((l) => (
@@ -260,20 +285,20 @@ export default function Memory() {
 
           <Box sx={{ mt: 2 }}>
             {!activeInput.display && (
-              <Alert severity="info">Wybierz liczbę z wyświetlacza.</Alert>
+              <Alert severity="info">{m.pickDisplay ?? ""}</Alert>
             )}
             {activeInput.display && !activeRule && (
               <Alert severity="warning">
-                Uzupełnij wcześniejsze stage'e — ta reguła odwołuje się do historii.
+                {m.needHistory ?? ""}
               </Alert>
             )}
             {activeRule && (
               <Alert severity={activeResolved ? "success" : "warning"}>
                 <Typography variant="body1" sx={{ fontWeight: 800 }}>
-                  Wciśnij: {activeRule.text}
+                  {fmt(m.pressIs ?? "", { t: activeRule.text })}
                   {activeResolved
-                    ? ` → przycisk na pozycji ${activeResolved}`
-                    : " (uzupełnij etykiety żeby wskazać pozycję)"}
+                    ? ` ${fmt(m.toPos ?? "", { n: activeResolved })}`
+                    : ` ${m.needLabels ?? ""}`}
                 </Typography>
               </Alert>
             )}
@@ -283,16 +308,16 @@ export default function Memory() {
             <Button
               variant="outlined"
               disabled={activeStage === 1}
-              onClick={() => setActiveStage((s) => Math.max(1, s - 1) as StageNum)}
+              onClick={() => setActiveStage((st) => Math.max(1, st - 1) as StageNum)}
             >
-              ← Wstecz
+              {m.back ?? ""}
             </Button>
             <Button
               variant="outlined"
               disabled={activeStage === 5}
-              onClick={() => setActiveStage((s) => Math.min(5, s + 1) as StageNum)}
+              onClick={() => setActiveStage((st) => Math.min(5, st + 1) as StageNum)}
             >
-              Dalej →
+              {m.next ?? ""}
             </Button>
           </Box>
         </Paper>
@@ -303,10 +328,10 @@ export default function Memory() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Stage</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Ekran</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Etykiety (poz.1-4)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Wciśnij</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{m.thStage ?? ""}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{m.thDisplay ?? ""}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{m.thLabels ?? ""}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{m.thPress ?? ""}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -328,7 +353,7 @@ export default function Memory() {
                         <Chip
                           size="small"
                           color="success"
-                          label={`poz. ${history[i]!.pos} ("${history[i]!.label}")`}
+                          label={`${fmt(memT.posT, { n: history[i]!.pos })} ("${history[i]!.label}")`}
                         />
                       ) : (
                         "–"
@@ -340,7 +365,7 @@ export default function Memory() {
             </Table>
           </TableContainer>
           <Typography variant="caption" sx={{ opacity: 0.65, mt: 1, display: "block" }}>
-            Kliknij wiersz żeby edytować stage. Błąd na bombie = reset modułu do stage 1 (tu też kliknij Reset).
+            {m.resetHint ?? ""}
           </Typography>
         </Box>
       </Box>

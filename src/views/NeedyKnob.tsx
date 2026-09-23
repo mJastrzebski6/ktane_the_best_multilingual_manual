@@ -1,16 +1,10 @@
 import * as React from "react";
 import { Alert, AlertTitle, Box, Button, Paper, Typography } from "@mui/material";
 import ModuleHeader from "../components/ModuleHeader";
+import { fmt, useAppStore } from "../store/AppStore";
 
 type KnobDir = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Mode = "left" | "minimum" | "right";
-
-const DIR_PL: Record<KnobDir, string> = {
-  UP: "GÓRA",
-  DOWN: "DÓŁ",
-  LEFT: "LEWO",
-  RIGHT: "PRAWO",
-};
 
 const DIR_ARROW: Record<KnobDir, string> = {
   UP: "↑",
@@ -122,6 +116,9 @@ const emptyLeds = () =>
 export default function NeedyKnob() {
   const [mode, setMode] = React.useState<Mode>("minimum");
   const [leds, setLeds] = React.useState<boolean[][]>(emptyLeds);
+  const kb = (useAppStore((s) => s.t?.ui?.knob) ?? {}) as Record<string, string>;
+  const dirWord = (d: KnobDir) =>
+    d === "UP" ? (kb.dirUp ?? d) : d === "DOWN" ? (kb.dirDown ?? d) : d === "LEFT" ? (kb.dirLeft ?? d) : (kb.dirRight ?? d);
 
   const reset = () => setLeds(emptyLeds());
 
@@ -146,20 +143,20 @@ export default function NeedyKnob() {
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Needy Knob / Gałka"
+        title={kb.title ?? "Knob"}
         onReset={reset}
-        helpText="Needy moduł: gałka musi być w dobrej pozycji zanim jej timer dojdzie do zera. Kliknij LED-y żeby odtworzyć bombę. Pozycje są względem napisu UP, który może być obrócony."
+        helpText={kb.help}
       />
 
       <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-        Tryb patrzenia na LED-y (jak na bombcheater):
+        {kb.modeLabel ?? ""}
       </Typography>
       <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
         {(
           [
-            { v: "left" as Mode, label: "LEWA (kolumny 1–3)" },
-            { v: "minimum" as Mode, label: "MINIMUM (2 górne z lewej + 2 dolne z prawej)" },
-            { v: "right" as Mode, label: "PRAWA (kolumny 4–6)" },
+            { v: "left" as Mode, label: kb.modeLeft ?? "" },
+            { v: "minimum" as Mode, label: kb.modeMin ?? "" },
+            { v: "right" as Mode, label: kb.modeRight ?? "" },
           ]
         ).map((o) => (
           <Button
@@ -180,11 +177,7 @@ export default function NeedyKnob() {
       <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", alignItems: "flex-start" }}>
         <Paper elevation={2} sx={{ p: 2, display: "inline-block" }}>
           <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-            {mode === "right"
-              ? "Klikaj kolumny 4–6:"
-              : mode === "left"
-                ? "Klikaj kolumny 1–3:"
-                : "Klikaj 2 górne z lewej i 2 dolne z prawej:"}
+            {mode === "right" ? (kb.clickRight ?? "") : mode === "left" ? (kb.clickLeft ?? "") : (kb.clickMin ?? "")}
           </Typography>
           {[0, 1].map((r) => (
             <Box key={r} sx={{ display: "flex", gap: 1.2, mb: 1.2 }}>
@@ -213,7 +206,7 @@ export default function NeedyKnob() {
             </Box>
           ))}
           <Typography variant="caption" sx={{ opacity: 0.6 }}>
-            szare LED-y są ignorowane w tym trybie
+            {kb.ignoreNote ?? ""}
           </Typography>
         </Paper>
 
@@ -221,20 +214,19 @@ export default function NeedyKnob() {
           {result ? (
             <Alert severity="success">
               <AlertTitle sx={{ fontWeight: 900, fontSize: 22 }}>
-                USTAW GAŁKĘ: {DIR_PL[result]} {DIR_ARROW[result]}
+                {fmt(kb.resultTitle ?? "", { d: dirWord(result), a: DIR_ARROW[result] })}
               </AlertTitle>
               <Typography variant="body2">
                 {mode === "minimum"
-                  ? "te 4 LED-y wystarczą (reszta ignorowana)"
+                  ? (kb.howMin ?? "")
                   : mode === "left"
-                    ? "lewa połowa pasuje do tabeli manuala"
-                    : "prawa połowa pasuje do tabeli manuala"}
-                . Pozycja względem napisu UP na module.
+                    ? (kb.howLeft ?? "")
+                    : (kb.howRight ?? "")}
               </Typography>
             </Alert>
           ) : (
             <Alert severity="info">
-              Ta kombinacja nie pasuje do żadnej konfiguracji z manuala — sprawdź LED-y.
+              {kb.noMatch ?? ""}
             </Alert>
           )}
         </Box>

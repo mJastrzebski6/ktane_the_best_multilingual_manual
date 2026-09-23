@@ -2,19 +2,20 @@ import * as React from "react";
 import { Box, Button, Typography, Paper, Alert, AlertTitle } from "@mui/material";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import UndoIcon from "@mui/icons-material/Undo";
-import { useAppStore } from "../store/AppStore";
+import { fmt, useAppStore } from "../store/AppStore";
 import ModuleHeader from "../components/ModuleHeader";
 import MissingFactsBanner from "../components/MissingFactsBanner";
 
 type WireColor = "red" | "blue" | "yellow" | "white" | "black";
 
-const COLOR_PL: Record<WireColor, string> = {
-  red: "czerwony",
-  blue: "niebieski",
-  yellow: "żółty",
-  white: "biały",
-  black: "czarny",
-};
+type WireStrings = Record<string, string>;
+
+const colorName = (c: WireColor, s: WireStrings) =>
+  c === "red" ? (s.colorRed ?? c)
+  : c === "blue" ? (s.colorBlue ?? c)
+  : c === "yellow" ? (s.colorYellow ?? c)
+  : c === "white" ? (s.colorWhite ?? c)
+  : (s.colorBlack ?? c);
 
 const COLOR_BG: Record<WireColor, string> = {
   red: "#d32f2f",
@@ -31,7 +32,7 @@ interface Solution {
   rule: string;
 }
 
-function solveWires(wires: WireColor[], serialOdd: boolean): Solution {
+function solveWires(wires: WireColor[], serialOdd: boolean, s: WireStrings): Solution {
   const n = wires.length;
   const count = (c: WireColor) => wires.filter((w) => w === c).length;
   const last = wires[n - 1];
@@ -39,50 +40,50 @@ function solveWires(wires: WireColor[], serialOdd: boolean): Solution {
 
   if (n === 3) {
     if (count("red") === 0)
-      return { index: 1, rule: "3 kable: brak czerwonych → przetnij 2. kabel." };
+      return { index: 1, rule: s.r3a ?? "" };
     if (last === "white")
-      return { index: 2, rule: "3 kable: ostatni biały → przetnij ostatni." };
+      return { index: 2, rule: s.r3b ?? "" };
     if (count("blue") > 1)
       return {
         index: lastIndexOf("blue"),
-        rule: "3 kable: więcej niż 1 niebieski → przetnij ostatni niebieski.",
+        rule: s.r3c ?? "",
       };
-    return { index: 2, rule: "3 kable: wpp. → przetnij ostatni." };
+    return { index: 2, rule: s.r3d ?? "" };
   }
 
   if (n === 4) {
     if (count("red") > 1 && serialOdd)
       return {
         index: lastIndexOf("red"),
-        rule: "4 kable: >1 czerwony + nieparzysty serial → przetnij ostatni czerwony.",
+        rule: s.r4a ?? "",
       };
     if (last === "yellow" && count("red") === 0)
-      return { index: 0, rule: "4 kable: ostatni żółty + brak czerwonych → przetnij 1." };
+      return { index: 0, rule: s.r4b ?? "" };
     if (count("blue") === 1)
-      return { index: 0, rule: "4 kable: dokładnie 1 niebieski → przetnij 1." };
+      return { index: 0, rule: s.r4c ?? "" };
     if (count("yellow") > 1)
-      return { index: 3, rule: "4 kable: więcej niż 1 żółty → przetnij ostatni (4.)." };
-    return { index: 1, rule: "4 kable: wpp. → przetnij 2. kabel." };
+      return { index: 3, rule: s.r4d ?? "" };
+    return { index: 1, rule: s.r4e ?? "" };
   }
 
   if (n === 5) {
     if (last === "black" && serialOdd)
-      return { index: 3, rule: "5 kabli: ostatni czarny + nieparzysty serial → przetnij 4." };
+      return { index: 3, rule: s.r5a ?? "" };
     if (count("red") === 1 && count("yellow") > 1)
-      return { index: 0, rule: "5 kabli: dokładnie 1 czerwony + >1 żółty → przetnij 1." };
+      return { index: 0, rule: s.r5b ?? "" };
     if (count("black") === 0)
-      return { index: 1, rule: "5 kabli: brak czarnych → przetnij 2." };
-    return { index: 0, rule: "5 kabli: wpp. → przetnij 1." };
+      return { index: 1, rule: s.r5c ?? "" };
+    return { index: 0, rule: s.r5d ?? "" };
   }
 
   // n === 6
   if (count("yellow") === 0 && serialOdd)
-    return { index: 2, rule: "6 kabli: brak żółtych + nieparzysty serial → przetnij 3." };
+    return { index: 2, rule: s.r6a ?? "" };
   if (count("yellow") === 1 && count("white") > 1)
-    return { index: 3, rule: "6 kabli: dokładnie 1 żółty + >1 biały → przetnij 4." };
+    return { index: 3, rule: s.r6b ?? "" };
   if (count("red") === 0)
-    return { index: 5, rule: "6 kabli: brak czerwonych → przetnij ostatni (6.)." };
-  return { index: 3, rule: "6 kabli: wpp. → przetnij 4." };
+    return { index: 5, rule: s.r6c ?? "" };
+  return { index: 3, rule: s.r6d ?? "" };
 }
 
 /** Czy przy tych kablach parzystość seriala w ogóle wpływa na decyzję? */
@@ -98,6 +99,7 @@ function needsSerialParity(wires: WireColor[]): boolean {
 
 export default function WireHorizontal() {
   const serialLastDigitEven = useAppStore((s) => s.bombFacts.serialLastDigitEven);
+  const s = useAppStore((s) => s.t.ui.wires) as WireStrings;
 
   const [wires, setWires] = React.useState<WireColor[]>([]);
 
@@ -112,25 +114,26 @@ export default function WireHorizontal() {
   const solution: Solution | null = React.useMemo(() => {
     if (wires.length < 3 || wires.length > 6) return null;
     if (needsSerialParity(wires) && serialLastDigitEven === null) return null;
-    return solveWires(wires, !serialLastDigitEven);
-  }, [wires, serialLastDigitEven]);
+    return solveWires(wires, !serialLastDigitEven, s);
+  }, [wires, serialLastDigitEven, s]);
+
+  const parityWord =
+    serialLastDigitEven === null ? "?" : serialLastDigitEven ? (s.parityEven ?? "") : (s.parityOdd ?? "");
 
   return (
     <Box sx={{ userSelect: "none" }}>
       <ModuleHeader
-        title="Wires / Proste kable"
+        title={s.title ?? "Wires"}
         onReset={reset}
-        requiredData={[
-          `PARZYSTOŚĆ NUMERU SERYJNEGO — ${serialLastDigitEven === null ? "?" : serialLastDigitEven ? "parzysty" : "nieparzysty"}`,
-        ]}
-        helpText="Klikaj 5 kolorowych guzików w kolejności kabli z bomby (od góry). Kable rysują się na dole, a program z każdym kliknięciem przelicza który przeciąć. Parzystość ostatniej cyfry seriala ustaw w panelu po lewej."
+        requiredData={[fmt(s.reqParity ?? "{v}", { v: parityWord })]}
+        helpText={s.help}
       />
 
       {needsSerial && !serialKnown && <MissingFactsBanner needed={["serialLastDigitEven"]} />}
 
       {/* 5 guzików — kolory kabli */}
       <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-        Klikaj kolory po kolei od góry ({wires.length}/6):
+        {fmt(s.clickColors ?? "", { n: wires.length })}
       </Typography>
       <Box sx={{ display: "flex", gap: 1.5, mb: 1, flexWrap: "wrap" }}>
         {ALL_COLORS.map((c) => (
@@ -138,7 +141,7 @@ export default function WireHorizontal() {
             key={c}
             onClick={() => addWire(c)}
             disabled={wires.length >= 6}
-            title={COLOR_PL[c]}
+            title={colorName(c, s)}
             sx={{
               minWidth: 96,
               height: 56,
@@ -151,7 +154,7 @@ export default function WireHorizontal() {
               "&.Mui-disabled": { opacity: 0.5, color: c === "yellow" || c === "white" ? "#111" : "#fff" },
             }}
           >
-            {COLOR_PL[c]}
+            {colorName(c, s)}
           </Button>
         ))}
       </Box>
@@ -163,10 +166,10 @@ export default function WireHorizontal() {
           onClick={undoLast}
           disabled={wires.length === 0}
         >
-          Cofnij ostatni
+          {s.undo ?? ""}
         </Button>
         <Typography variant="caption" sx={{ opacity: 0.6 }}>
-          potrzebne min. 3 kable, max 6
+          {s.hint36 ?? ""}
         </Typography>
       </Box>
 
@@ -175,7 +178,7 @@ export default function WireHorizontal() {
         <Paper elevation={2} sx={{ p: 2, minWidth: 320, maxWidth: 420, flex: "0 1 auto" }}>
           {wires.length === 0 && (
             <Typography variant="body2" sx={{ opacity: 0.6 }}>
-              Jeszcze nic nie kliknięto — kliknij pierwszy (górny) kabel.
+              {s.emptyState ?? ""}
             </Typography>
           )}
           {wires.map((w, idx) => {
@@ -207,7 +210,7 @@ export default function WireHorizontal() {
                     border: "2px solid rgba(0,0,0,0.45)",
                     boxShadow: "inset 0 -3px 0 rgba(0,0,0,0.25)",
                   }}
-                  title={COLOR_PL[w]}
+                  title={colorName(w, s)}
                 />
                 <Box sx={{ width: 40, display: "flex", justifyContent: "center" }}>
                   {isTarget && <ContentCutIcon color="success" fontSize="medium" />}
@@ -217,7 +220,7 @@ export default function WireHorizontal() {
           })}
           {wires.length > 0 && wires.length < 3 && (
             <Typography variant="body2" sx={{ mt: 1, opacity: 0.7 }}>
-              Kliknij jeszcze {3 - wires.length}…
+              {fmt(s.needMore ?? "", { n: 3 - wires.length })}
             </Typography>
           )}
         </Paper>
@@ -227,14 +230,13 @@ export default function WireHorizontal() {
           {needsSerial && !serialKnown ? (
             <Alert severity="warning" sx={{ border: "3px solid #ed6c02" }}>
               <AlertTitle sx={{ fontWeight: 900, fontSize: 18 }}>
-                NAJPIERW WPISZ POWYŻEJ PARZYSTOŚĆ SERIALA
+                {s.blockedTitle ?? ""}
               </AlertTitle>
               <Typography variant="body1" sx={{ fontWeight: 800, color: "error.main" }}>
-                Bez tego wynik jest nieznany — nie wiadomo który kabel przeciąć.
+                {s.blockedDesc ?? ""}
               </Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
-                Przy tych kablach ({wires.length}) pierwsza reguła zależy od tego, czy ostatnia
-                cyfra seriala jest nieparzysta. Uzupełnij w banerze powyżej albo w lewym panelu.
+                {fmt(s.blockedReason ?? "", { n: wires.length })}
               </Typography>
             </Alert>
           ) : solution ? (
@@ -242,24 +244,23 @@ export default function WireHorizontal() {
               <AlertTitle sx={{ fontWeight: 800, fontSize: 18 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <ContentCutIcon />
-                  Przetnij kabel {solution.index + 1}. (od góry)
+                  {fmt(s.cutWire ?? "", { n: solution.index + 1 })}
                 </Box>
               </AlertTitle>
               <Typography variant="body2">{solution.rule}</Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                Kolory od góry: {wires.map((w) => COLOR_PL[w]).join(" → ")}
+                {fmt(s.colorsFromTop ?? "", { list: wires.map((w) => colorName(w, s)).join(" → ") })}
               </Typography>
             </Alert>
           ) : (
             <Alert severity="info">
               {wires.length > 6
-                ? "Za dużo kabli."
-                : `Klikaj kolory — wynik pojawi się od 3 kabli (teraz: ${wires.length}).`}
+                ? (s.tooMany ?? "")
+                : fmt(s.notEnough ?? "", { n: wires.length })}
             </Alert>
           )}
           <Typography variant="caption" sx={{ opacity: 0.6, mt: 1, display: "block" }}>
-            Wynik przelicza się z każdym kliknięciem (3 vs 4 vs 5 vs 6 kabli to inne reguły).
-            Zmiana parzystości seriala w lewym panelu też od razu zmienia wynik.
+            {s.note ?? ""}
           </Typography>
         </Box>
       </Box>

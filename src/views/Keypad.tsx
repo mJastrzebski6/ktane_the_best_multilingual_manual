@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import ModuleHeader from "../components/ModuleHeader";
+import { fmt, useAppStore } from "../store/AppStore";
 import { KeypadImageById, type SymbolId } from "./KeypadImages";
 
 const columns: SymbolId[][] = [
@@ -48,6 +49,7 @@ const columns: SymbolId[][] = [
 const MAX_SELECTED = 4;
 
 export default function Keypad() {
+  const kp = (useAppStore((s) => s.t?.ui?.keypad) ?? {}) as Record<string, string>;
   const [selected, setSelected] = useState<SymbolId[]>([]);
   const selectedSet = useMemo(() => new Set<SymbolId>(selected), [selected]);
 
@@ -142,10 +144,10 @@ export default function Keypad() {
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <ModuleHeader title="KEYPAD" onReset={handleReset} />
+      <ModuleHeader title={kp.title ?? "Keypad"} onReset={handleReset} helpText={kp.help} />
 
       <Typography variant="body2" sx={{ mb: 2, opacity: 0.8 }}>
-        Wybrane: {selected.length}/{MAX_SELECTED}
+        {fmt(kp.picked ?? "", { a: selected.length, b: MAX_SELECTED })}
       </Typography>
 
       {!hasValidColumnForSelected && (
@@ -153,7 +155,7 @@ export default function Keypad() {
           variant="body1"
           sx={{ mb: 2, color: "error.main", fontWeight: 700 }}
         >
-          Zła kombinacja
+          {kp.badCombo ?? ""}
         </Typography>
       )}
 
@@ -239,7 +241,7 @@ export default function Keypad() {
       >
         {selected.length === 0 ? (
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            Zaznacz 4 symbole.
+            {kp.pick4 ?? ""}
           </Typography>
         ) : (
           <>
@@ -277,7 +279,7 @@ export default function Keypad() {
 
             {resolvedColumn && (
               <Typography variant="body2" sx={{ opacity: 0.8, mr: 1 }}>
-                Kolumna: {matchingColumnIdxs[0] + 1}
+                {fmt(kp.column ?? "", { n: matchingColumnIdxs[0] + 1 })}
               </Typography>
             )}
           </>
